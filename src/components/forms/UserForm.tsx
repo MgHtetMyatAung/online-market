@@ -3,7 +3,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserFormData, userSchema } from "@/libs/validations/user";
+import { UserFormData, userSchema } from "@/lib/validations/user";
 
 export default function UserForm() {
   const {

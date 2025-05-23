@@ -1,6 +1,6 @@
-import { ApiResponseHandler } from "@/libs/api-response";
-import { prisma } from "@/libs/prisma";
-import { productSchema } from "@/libs/validations/product";
+import { ApiResponseHandler } from "@/lib/api-response";
+import { prisma } from "@/lib/prisma";
+import { productSchema } from "@/lib/validations/product";
 import { NextRequest } from "next/server";
 
 export async function GET() {

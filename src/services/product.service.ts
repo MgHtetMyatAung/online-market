@@ -1,4 +1,4 @@
-import { ApiResponse } from "@/libs/api-response";
+import { ApiResponse } from "@/lib/api-response";
 import { Product } from "@prisma/client";
 
 export const productService = {

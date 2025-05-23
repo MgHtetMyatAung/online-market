@@ -1,5 +1,5 @@
-import { ApiResponseHandler } from "@/libs/api-response";
-import { prisma } from "@/libs/prisma";
+import { ApiResponseHandler } from "@/lib/api-response";
+import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
 
 export async function GET(
