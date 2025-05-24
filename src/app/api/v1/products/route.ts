@@ -1,16 +1,42 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiResponseHandler } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
-import { productSchema } from "@/lib/validations/product";
-import { NextRequest } from "next/server";
+import { productSchema } from "@/lib/validations/product"; // Ensure this Zod schema is updated
+import { NextRequest } from "next/server"; // Import UserRole enum
 
+// GET all products (for admin view, including relations)
 export async function GET() {
   try {
-    const products = await prisma.product.findMany();
+    const products = await prisma.product.findMany({
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+        brand: { select: { id: true, name: true, slug: true } },
+        promotion: {
+          // Include the linked promotion details
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            value: true,
+            startDate: true,
+            endDate: true,
+            isActive: true,
+            couponCode: true,
+          },
+        },
+        variants: true, // Include product variants
+      },
+      orderBy: {
+        createdAt: "desc", // Order by creation date, newest first
+      },
+    });
+
     return ApiResponseHandler.success(
       products,
       "Products retrieved successfully"
     );
   } catch (error) {
+    console.error("Failed to fetch products:", error); // Log the error for debugging
     return ApiResponseHandler.error(
       "Failed to fetch products",
       500,
@@ -19,34 +45,93 @@ export async function GET() {
   }
 }
 
+// POST a new product (admin only)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     // Validate request body with Zod
+    // Ensure productSchema in lib/validations/product.ts includes:
+    // slug, name, description, price, stock, categoryId, brandId, imageUrls, isFeatured, isActive, promotionId
     const validationResult = productSchema.safeParse(body);
 
     if (!validationResult.success) {
+      console.error("Product validation error:", validationResult.error.errors);
       return ApiResponseHandler.error(
         "Invalid product data",
         400,
         validationResult.error.errors
-          .map((e) => `${e.path}: ${e.message}`)
+          .map((e) => `${e.path.join(".")}: ${e.message}`) // Join path for better error message
           .join(", ")
       );
     }
 
+    const {
+      name,
+      slug, // New field
+      description,
+      price,
+      stock,
+      categoryId,
+      brandId, // New field
+      imageUrls, // New field
+      isFeatured, // New field
+      isActive, // New field
+      promotionId, // New field
+      variants, // Assuming variants can be created with the product
+    } = validationResult.data;
+
     const product = await prisma.product.create({
       data: {
-        name: validationResult.data.name,
-        description: validationResult.data.description,
-        price: validationResult.data.price,
-        stock: validationResult.data.stock,
+        name,
+        slug,
+        description,
+        price,
+        stock,
+        imageUrls,
+        isFeatured: isFeatured ?? false, // Default to false if not provided
+        isActive: isActive ?? true, // Default to true if not provided
         category: {
           connect: {
-            id: validationResult.data.categoryId,
+            id: categoryId,
           },
         },
+        // Conditionally connect brand if brandId is provided
+        ...(brandId && {
+          brand: {
+            connect: {
+              id: brandId,
+            },
+          },
+        }),
+        // Conditionally connect promotion if promotionId is provided
+        ...(promotionId && {
+          promotion: {
+            connect: {
+              id: promotionId,
+            },
+          },
+        }),
+        // Create nested variants if provided
+        ...(variants &&
+          variants.length > 0 && {
+            variants: {
+              createMany: {
+                data: variants.map((v) => ({
+                  name: v.name,
+                  value: v.value,
+                  variantStock: v.variantStock, // Ensure variantStock is handled
+                })),
+              },
+            },
+          }),
+      },
+      include: {
+        // Include created relations in the response
+        category: true,
+        brand: true,
+        promotion: true,
+        variants: true,
       },
     });
 
@@ -55,11 +140,30 @@ export async function POST(request: NextRequest) {
       "Product created successfully",
       201
     );
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Failed to create product:", error); // Log the error for debugging
+    let errorMessage = "Failed to create product";
+    let statusCode = 400; // Default to 400 for validation/input issues
+
+    if (error.code === "P2002" && error.meta?.target?.includes("slug")) {
+      errorMessage = "Product slug must be unique.";
+      statusCode = 409; // Conflict
+    } else if (error.code === "P2025") {
+      // Foreign key constraint failed (e.g., categoryId not found)
+      errorMessage = "Associated category, brand, or promotion not found.";
+      statusCode = 404; // Not Found
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+      statusCode = 500; // Internal server error for unexpected errors
+    }
+
     return ApiResponseHandler.error(
-      "Failed to create product",
-      400,
+      errorMessage,
+      statusCode,
       error instanceof Error ? error.message : "Unknown error"
     );
   }
 }
+
+// Add the authorizeMiddleware to both GET and POST
+// This route should be located at `app/api/admin/products/route.ts` as per your structure

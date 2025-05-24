@@ -1,9 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,65 +8,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ... existing generator and datasource ...
-
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  password  String
-  role      Role     @default(USER)
-  orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Product {
-  id          Int         @id @default(autoincrement())
-  name        String
-  description String
-  price       Decimal
-  stock       Int
-  image       String?
-  category    Category    @relation(fields: [categoryId], references: [id])
-  categoryId  Int
-  orderItems  OrderItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-}
-
-model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model Order {
-  id          Int         @id @default(autoincrement())
-  user        User        @relation(fields: [userId], references: [id])
-  userId      Int
-  status      OrderStatus @default(PENDING)
-  items       OrderItem[]
-  totalAmount Decimal
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-}
-
-model OrderItem {
-  id        Int     @id @default(autoincrement())
-  order     Order   @relation(fields: [orderId], references: [id])
-  orderId   Int
-  product   Product @relation(fields: [productId], references: [id])
-  productId Int
-  quantity  Int
-  price     Decimal
-}
-
-enum Role {
-  USER
-  ADMIN
+// Enums for roles, order status, promotion types, address types
+enum UserRole {
+  GUEST // Not stored in DB, but conceptual for public access
+  USER // Standard customer
+  ADMIN // Full control
+  // Add other roles like STAFF, MODERATOR if needed later
 }
 
 enum OrderStatus {
@@ -80,4 +22,296 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+  RETURNED
+}
+
+enum PromotionType {
+  PERCENTAGE_DISCOUNT // e.g., 10% off
+  FIXED_AMOUNT_DISCOUNT // e.g., $10 off
+  CASHBACK // e.g., $5 cashback
+  BUY_X_GET_Y // e.g., Buy 2 get 1 free
+  FREE_SHIPPING
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+}
+
+enum UserLevelType {
+  BRONZE
+  SILVER
+  GOLD
+  Diamond
+}
+
+// User Model (Updated with Loyalty Points and Active Status)
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  name          String
+  phone         String?
+  password      String
+  role          UserRole      @default(USER)
+  isActive      Boolean       @default(true) // For banning/inactivating users
+  loyaltyPoints Int           @default(0) // Total loyalty points
+  level         UserLevelType @default(BRONZE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  orders       Order[]
+  addresses    Address[]
+  carts        Cart[]
+  userRequests UserRequest[]
+  // Add relations for reviews, wishlists etc. later
+}
+
+// Product Management
+model Category {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  image       String?
+  slug        String  @unique // Slug for this specific category (e.g., 'mobile', 'mango', 'lenovo')
+  isActive    Boolean @default(true)
+
+  // New fields for nesting
+  parentId String? // ID of the parent category, null for top-level categories
+  parent   Category? @relation("SubCategories", fields: [parentId], references: [id], onDelete: Cascade) // Parent relation
+
+  children Category[] @relation("SubCategories") // Inverse relation for children
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, parentId]) // Ensures unique category names under the same parent
+}
+
+model Brand {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  image       String?
+  slug        String    @unique
+  isActive    Boolean   @default(true)
+  products    Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  name          String
+  slug          String   @unique
+  description   String?
+  howToUse      String?
+  youtubeVideo  String?
+  specification String?
+  price         Float
+  // Use a field for images, e.g., a JSON array of URLs or a separate Image model
+  imageUrls     String[]
+  stock         Int      @default(0)
+  isFeatured    Boolean  @default(false)
+  isActive      Boolean  @default(true) // For product visibility
+  instock       Boolean  @default(true)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id])
+
+  // UPDATED: promotionId is now nullable and NOT unique
+  promotionId String?
+  promotion   Promotion? @relation(fields: [promotionId], references: [id]) // A Product belongs to ONE Promotion (or none)
+
+  variants   ProductVariant[]
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+  // reviews      Review[] // Future: User reviews
+  // wishlists    Wishlist[] // Future: User wishlists
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductVariant {
+  id           String  @id @default(uuid())
+  productId    String
+  product      Product @relation(fields: [productId], references: [id])
+  name         String // e.g., "Size", "Color"
+  value        String // e.g., "M", "Red"
+  variantStock Int     @default(0) // Stock for this specific variant
+
+  // ADD THIS LINE:
+  orderItems OrderItem[] // This is the inverse relation field
+
+  // You also have a relation to CartItem, so add that too
+  cartItems CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// Promotion Management
+model Promotion {
+  id             String        @id @default(uuid())
+  name           String
+  description    String?
+  type           PromotionType
+  value          Float
+  minOrderAmount Float?
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean       @default(true)
+
+  requiredQuantity Int?
+  freeQuantity     Int?
+
+  minLoyaltyPoints Int?
+
+  couponCode String? @unique
+
+  // NEW: A Promotion can be applied to MANY Products
+  products Product[] // Inverse relation: This promotion applies to these products
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Collection (e.g., "Summer Sale", "New Arrivals")
+model Collection {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  productIds  String[] @default([]) // IDs of products in this collection
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Order Management
+model Order {
+  id                String      @id @default(uuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id])
+  totalAmount       Float
+  status            OrderStatus @default(PENDING)
+  orderDate         DateTime    @default(now())
+  shippingAddressId String
+  shippingAddress   Address     @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddressId  String
+  billingAddress    Address     @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  paymentStatus     String      @default("PENDING") // e.g., "PENDING", "PAID", "FAILED"
+  transactionId     String? // From payment gateway
+
+  items     OrderItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model OrderItem {
+  id           String          @id @default(uuid())
+  orderId      String
+  order        Order           @relation(fields: [orderId], references: [id])
+  productId    String
+  product      Product         @relation(fields: [productId], references: [id])
+  variantId    String? // If a specific variant was ordered
+  // You need to explicitly name the relation if there are multiple relations between two models,
+  // but in this case, a single direct relation is fine as long as `ProductVariant` has its side.
+  variant      ProductVariant? @relation(fields: [variantId], references: [id])
+  quantity     Int
+  priceAtOrder Float // Price at the time of order
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Address {
+  id        String      @id @default(uuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  street    String
+  city      String
+  state     String?
+  zip       String
+  country   String
+  type      AddressType // Shipping or Billing
+  isDefault Boolean     @default(false)
+
+  // Relations for Orders
+  shippingOrders Order[]  @relation("ShippingAddress")
+  billingOrders  Order[]  @relation("BillingAddress")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// Shopping Cart (persistent for logged-in users, or can use session storage for guests)
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String?    @unique // Nullable for guest carts if storing, otherwise use sessions
+  user      User?      @relation(fields: [userId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String          @id @default(uuid())
+  cartId    String
+  cart      Cart            @relation(fields: [cartId], references: [id])
+  productId String
+  product   Product         @relation(fields: [productId], references: [id])
+  variantId String? // If a specific variant
+  // You need to explicitly name the relation if there are multiple relations between two models,
+  // but in this case, a single direct relation is fine as long as `ProductVariant` has its side.
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  quantity  Int
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+// Content Management (Banners, Announcements)
+model Banner {
+  id        String   @id @default(uuid())
+  title     String
+  imageUrl  String
+  linkUrl   String?
+  isActive  Boolean  @default(true)
+  priority  Int      @default(0) // For sorting
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Announcement {
+  id          String    @id @default(uuid())
+  title       String
+  content     String
+  publishedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// User Requests/Support
+model UserRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  subject   String
+  message   String
+  status    String   @default("OPEN") // e.g., OPEN, IN_PROGRESS, CLOSED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Loyalty Settings (A single row table for global settings)
+model LoyaltySetting {
+  id                      String @id @default(uuid())
+  pointsPerDollar         Float  @default(1.0) // How many points per dollar spent
+  minOrderAmountForPoints Float  @default(0.0) // Min order value to earn points
+  // Could add tiers for user levels based on total spending or points
 }

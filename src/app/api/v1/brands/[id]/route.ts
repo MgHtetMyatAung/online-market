@@ -1,5 +1,6 @@
 import { ApiResponseHandler } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
+import { brandSchema } from "@/lib/validations/brand";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -8,25 +9,22 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    const product = await prisma.product.findUnique({
+    const brand = await prisma.brand.findUnique({
       where: { id },
     });
 
-    if (!product) {
+    if (!brand) {
       return ApiResponseHandler.error(
-        "Product not found",
+        "Brand not found",
         404,
-        "Product with the specified ID does not exist"
+        "Brand with the specified ID does not exist"
       );
     }
 
-    return ApiResponseHandler.success(
-      product,
-      "Product retrieved successfully"
-    );
+    return ApiResponseHandler.success(brand, "Brand retrieved successfully");
   } catch (error) {
     return ApiResponseHandler.error(
-      "Failed to fetch product",
+      "Failed to fetch brand",
       500,
       error instanceof Error ? error.message : "Unknown error"
     );
@@ -40,15 +38,29 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await request.json();
-    const product = await prisma.product.update({
+
+    const validationResult = brandSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      console.error("Brand validation error:", validationResult.error.errors);
+      return ApiResponseHandler.error(
+        "Invalid brand data",
+        400,
+        validationResult.error.errors
+          .map((e) => `${e.path.join(".")}: ${e.message}`) // Join path for better error message
+          .join(", ")
+      );
+    }
+
+    const brand = await prisma.brand.update({
       where: { id },
       data: body,
     });
 
-    return ApiResponseHandler.success(product, "Product updated successfully");
+    return ApiResponseHandler.success(brand, "Brand updated successfully");
   } catch (error) {
     return ApiResponseHandler.error(
-      "Failed to update product",
+      "Failed to update brand",
       400,
       error instanceof Error ? error.message : "Unknown error"
     );
@@ -61,18 +73,14 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
-    await prisma.product.delete({
+    await prisma.brand.delete({
       where: { id },
     });
 
-    return ApiResponseHandler.success(
-      null,
-      "Product deleted successfully",
-      204
-    );
+    return ApiResponseHandler.success({}, "Brand deleted successfully", 200);
   } catch (error) {
     return ApiResponseHandler.error(
-      "Failed to delete product",
+      "Failed to delete brand",
       400,
       error instanceof Error ? error.message : "Unknown error"
     );
