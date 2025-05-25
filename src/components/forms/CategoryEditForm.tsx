@@ -43,7 +43,8 @@ const formSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export default function CategoryCreatePage() {
+export default function CategoryEditForm({ id }: { id: string }) {
+  console.log(id);
   const [files, setFiles] = useState<File[] | null>(null);
 
   const dropZoneConfig = {
@@ -68,7 +69,7 @@ export default function CategoryCreatePage() {
 
   return (
     <div className=" p-10">
-      <h3>Create New Category</h3>
+      <h3>Edit Category</h3>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

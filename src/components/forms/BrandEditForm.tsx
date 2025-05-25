@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -23,7 +23,12 @@ import {
 } from "@/components/ui/file-upload";
 import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
-import { useCreateBrand } from "@/hooks/api/use-brands";
+import {
+  useBrand,
+  useCreateBrand,
+  useUpdateBrand,
+} from "@/hooks/api/use-brands";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -32,9 +37,11 @@ const formSchema = z.object({
   image: z.string().optional(),
 });
 
-export default function BrandCreatePage() {
+export default function BrandEditForm({ id }: { id: string }) {
+  const route = useRouter();
+  const { data: brandDetail, isLoading: brandLoading } = useBrand(id);
   const [files, setFiles] = useState<File[] | null>(null);
-  const { mutate, isPending } = useCreateBrand();
+  const { mutate, isPending } = useUpdateBrand();
 
   const dropZoneConfig = {
     maxFiles: 5,
@@ -47,17 +54,35 @@ export default function BrandCreatePage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const res = await mutate(values);
-      toast.success("Brand created successfully !");
+      const res = await mutate({ id, data: values });
+      toast.success("Brand updated successfully !");
+      route.push("/dashboard/brand");
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
     }
   }
 
+  useEffect(() => {
+    if (brandDetail?.data) {
+      form.setValue("name", brandDetail.data.name);
+      form.setValue("slug", brandDetail.data.slug);
+      form.setValue("description", brandDetail.data.description || "");
+      form.setValue("image", brandDetail.data.image || "");
+    }
+  }, [brandDetail]);
+
+  if (brandLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!brandDetail) {
+    return <div>Brand not found</div>;
+  }
+
   return (
     <div className=" p-10 space-y-5">
-      <h3>Create New Brand</h3>
+      <h3>Edit Brand</h3>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <div className=" grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -160,7 +185,7 @@ export default function BrandCreatePage() {
               />
             </div>
           </div>
-          <Button type="submit">{isPending ? "..." : "Submit"}</Button>
+          <Button type="submit">{isPending ? "..." : "Update"}</Button>
         </form>
       </Form>
     </div>

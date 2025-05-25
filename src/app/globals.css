@@ -64,6 +64,6 @@
     @apply bg-background text-foreground;
   }
   h3 {
-    @apply text-lg font-semibold;
+    @apply text-xl font-bold;
   }
 }

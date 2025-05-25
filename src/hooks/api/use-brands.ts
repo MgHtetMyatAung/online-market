@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { brandService } from "@/services/brand.service";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -20,6 +21,18 @@ export function useCreateBrand() {
 
   return useMutation({
     mutationFn: brandService.createBrand,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["brands"] });
+    },
+  });
+}
+
+export function useUpdateBrand() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { id: string; data: any }) =>
+      brandService.updateBrand(params.id, params.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["brands"] });
     },

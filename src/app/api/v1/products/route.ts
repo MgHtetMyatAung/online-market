@@ -5,9 +5,29 @@ import { productSchema } from "@/lib/validations/product"; // Ensure this Zod sc
 import { NextRequest } from "next/server"; // Import UserRole enum
 
 // GET all products (for admin view, including relations)
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const brandId = searchParams.get("brandId");
+    const categoryId = searchParams.get("categoryId");
+    const promotionId = searchParams.get("promotionId");
+
+    const where: any = {};
+
+    if (brandId) {
+      where.brandId = brandId;
+    }
+
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+
+    if (promotionId) {
+      where.promotionId = promotionId;
+    }
+
     const products = await prisma.product.findMany({
+      where, // Add the dynamic where clause here
       include: {
         category: { select: { id: true, name: true, slug: true } },
         brand: { select: { id: true, name: true, slug: true } },

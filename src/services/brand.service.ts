@@ -34,6 +34,20 @@ export const brandService = {
     return response.json();
   },
 
+  async updateBrand(
+    id: string,
+    data: z.infer<typeof formSchema>
+  ): Promise<ApiResponse<Brand>> {
+    const response = await fetch(`/api/v1/brands/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+
   async deleteBrand(id: string): Promise<ApiResponse<null>> {
     // Assuming delete returns null or a success message
     const response = await fetch(`/api/v1/brands/${id}`, {

@@ -220,11 +220,15 @@ export default function BrandsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>View Products</DropdownMenuItem>
+                      <Link href={`/dashboard/brand/edit/${brand.id}`}>
+                        <DropdownMenuItem>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                      </Link>
+                      <Link href={`/dashboard/brand/products/${brand.id}`}>
+                        <DropdownMenuItem>View Products</DropdownMenuItem>
+                      </Link>
                       <DropdownMenuItem
                         className="text-destructive"
                         onClick={() => handleDelete(brand.id)}
