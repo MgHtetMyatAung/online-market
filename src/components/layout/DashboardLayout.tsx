@@ -1,15 +1,21 @@
-"use client";
-import React from "react";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "./sidebar/AppSideBar";
+import DashboardMenu from "./menu/DashboardMenu";
 
 export default function DashboardLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <div className=" flex w-full h-screen">
-      <div className="w-[200px] bg-gray-200 sticky top-0 left-0"></div>
-      <div className=" p-5 w-full h-full overflow-y-auto">{children}</div>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <main className=" w-full relative scroll-bar-fit bg-gray-100">
+        <DashboardMenu />
+        <div className=" p-5 w-full h-full">
+          <div className="">{children}</div>
+        </div>
+      </main>
+    </SidebarProvider>
   );
 }

@@ -26,7 +26,12 @@ export async function GET(request: Request) {
     if (type === "main") {
       whereClause = { parentId: null };
     } else if (type === "sub") {
-      whereClause = { parentId: { not: null } };
+      whereClause = { parentId: { not: null }, parent: { parentId: null } };
+    } else if (type === "last") {
+      whereClause = {
+        parentId: { not: null },
+        parent: { parentId: { not: null } },
+      };
     } else if (parentId) {
       whereClause = { parentId: parentId };
     }

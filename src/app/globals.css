@@ -67,3 +67,19 @@
     @apply text-xl font-bold;
   }
 }
+
+.scroll-bar-fit::-webkit-scrollbar {
+  width: 3px;
+}
+
+.scroll-bar-fit::-webkit-scrollbar-thumb {
+  background: #d5d6d8;
+}
+
+body::-webkit-scrollbar {
+  width: 5px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #959696;
+}

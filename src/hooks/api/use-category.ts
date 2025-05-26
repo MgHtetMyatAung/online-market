@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { categoryService } from "@/services/category.service";
 import { Category } from "@prisma/client";
+import { ApiResponse } from "@/lib/api-response";
+import toast from "react-hot-toast";
 
 interface UseCategoriesParams {
   type?: "main" | "sub";
@@ -26,37 +28,49 @@ interface UpdateCategoryPayload {
 }
 
 export const useCategories = (params?: UseCategoriesParams) => {
-  return useQuery<Category[]>({
-    // Specify return type
-    queryKey: ["categories", params], // Include params in query key for caching
+  return useQuery<ApiResponse<Category[]>>({
+    // Updated return type
+    queryKey: ["categories", params],
     queryFn: () => categoryService.getCategories(params),
   });
 };
 
 export const useCategoryById = (id: string) => {
-  return useQuery<Category>({
-    // Specify return type
-    queryKey: ["category", id], // Include ID in query key for caching
+  return useQuery<ApiResponse<Category>>({
+    // Updated return type
+    queryKey: ["category", id],
     queryFn: () => categoryService.getCategoryById(id),
-    enabled: !!id, // Only run the query if id is provided
+    enabled: !!id,
   });
 };
 
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<ApiResponse<Category>, Error, CreateCategoryPayload>({
+    // Updated return and error types
     mutationFn: (payload: CreateCategoryPayload) =>
       categoryService.createCategory(payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // 'data' here is the ApiResponse<Category>
       // Invalidate the categories list query to refetch data
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      // You can now access data.message here if needed for a toast or log
+      toast.success(data.message || "Category created successfully!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create category.");
     },
   });
 };
 
 export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<
+    ApiResponse<Category>,
+    Error,
+    { id: string; payload: UpdateCategoryPayload }
+  >({
+    // Updated types
     mutationFn: ({
       id,
       payload,
@@ -64,24 +78,33 @@ export const useUpdateCategory = () => {
       id: string;
       payload: UpdateCategoryPayload;
     }) => categoryService.updateCategory(id, payload),
-    onSuccess: (updatedCategory) => {
+    onSuccess: (data) => {
+      // 'data' here is the ApiResponse<Category>
       // Invalidate the specific category query
-      queryClient.invalidateQueries({
-        queryKey: ["category", updatedCategory.id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["category", data.data?.id] }); // Use data.data?.id
       // Invalidate the categories list query
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success(data.message || "Category updated successfully!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update category.");
     },
   });
 };
 
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<ApiResponse<Category>, Error, string>({
+    // Updated types
     mutationFn: (id: string) => categoryService.deleteCategory(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // 'data' here is the ApiResponse<Category>
       // Invalidate the categories list query to refetch data
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success(data.message || "Category deleted successfully!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete category.");
     },
   });
 };

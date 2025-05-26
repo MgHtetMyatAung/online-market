@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,11 +31,11 @@ import {
   FileUploaderItem,
 } from "@/components/ui/file-upload";
 import { Switch } from "@/components/ui/switch";
-import toast from "react-hot-toast";
+import { useCategories, useCreateCategory } from "@/hooks/api/use-category";
 
 const formSchema = z.object({
   category_level: z.string().optional(),
-  parentId: z.string(),
+  parentId: z.string().optional(),
   name: z.string().min(1),
   slug: z.string().min(1),
   description: z.string().optional(),
@@ -45,6 +45,7 @@ const formSchema = z.object({
 
 export default function CategoryCreatePage() {
   const [files, setFiles] = useState<File[] | null>(null);
+  const { mutate, isPending } = useCreateCategory();
 
   const dropZoneConfig = {
     maxFiles: 5,
@@ -53,18 +54,29 @@ export default function CategoryCreatePage() {
   };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      isActive: true,
+      category_level: "0",
+    },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const level = form.watch("category_level");
+
+  const { data } = useCategories({
+    type: level === "1" ? "main" : "sub",
+  });
+
+  console.log(data, "data");
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const { category_level, ...others } = values;
     try {
-      console.log(values);
+      await mutate(others);
+      form.reset();
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
     }
   }
-
-  const level = form.watch("category_level");
 
   return (
     <div className=" p-10">
@@ -138,7 +150,6 @@ export default function CategoryCreatePage() {
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        disabled
                         aria-readonly
                       />
                     </FormControl>
@@ -251,15 +262,11 @@ export default function CategoryCreatePage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="m@example.com">
-                            m@example.com
-                          </SelectItem>
-                          <SelectItem value="m@google.com">
-                            m@google.com
-                          </SelectItem>
-                          <SelectItem value="m@support.com">
-                            m@support.com
-                          </SelectItem>
+                          {data?.data?.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
 
