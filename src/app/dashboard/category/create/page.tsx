@@ -99,6 +99,7 @@ export default function CategoryCreatePage() {
                         placeholder="Category Name"
                         type="text"
                         {...field}
+                        className="bg-white"
                       />
                     </FormControl>
                     <FormMessage />
@@ -113,7 +114,12 @@ export default function CategoryCreatePage() {
                   <FormItem>
                     <FormLabel>Slug</FormLabel>
                     <FormControl>
-                      <Input placeholder="Slug" type="text" {...field} />
+                      <Input
+                        placeholder="Slug"
+                        type="text"
+                        {...field}
+                        className="bg-white"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,7 +135,7 @@ export default function CategoryCreatePage() {
                     <FormControl>
                       <Textarea
                         placeholder="Category description"
-                        className="resize-none"
+                        className="resize-none bg-white"
                         {...field}
                       />
                     </FormControl>
@@ -142,7 +148,7 @@ export default function CategoryCreatePage() {
                 control={form.control}
                 name="isActive"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white">
                     <div className="space-y-0.5">
                       <FormLabel>Is category active</FormLabel>
                     </div>
@@ -163,7 +169,7 @@ export default function CategoryCreatePage() {
                 name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Select File</FormLabel>
+                    <FormLabel>Upload Category Image</FormLabel>
                     <FormControl>
                       <FileUploader
                         value={files}
@@ -216,11 +222,11 @@ export default function CategoryCreatePage() {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className=" bg-white">
                           <SelectValue placeholder="Select a category level" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className=" bg-white">
                         <SelectItem value="0">
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-primary"></div>
@@ -257,11 +263,11 @@ export default function CategoryCreatePage() {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className=" bg-white">
                             <SelectValue placeholder="Select a parent category" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className=" bg-white">
                           {data?.data?.map((item) => (
                             <SelectItem key={item.id} value={item.id}>
                               {item.name}

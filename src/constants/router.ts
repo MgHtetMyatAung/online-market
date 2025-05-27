@@ -1,16 +1,28 @@
 // routes for all pages
 export const ROUTE_PATH = {
   // FOR UI PAGES
-  DASHBOARD: "/",
+  DASHBOARD: "/dashboard",
   // ANALYTICS: '/dashboard/analytics',
   // SETTING: '/settings',
   // USER: '/user',
 
   // blog
   BLOG: {
-    LIST: "/blogs",
-    CREATE: "/blogs/create",
-    EDIT: "/blogs/edit/:blogId",
+    LIST: "/dashboard/blogs",
+    CREATE: "/dashboard/blogs/create",
+    EDIT: "/dashboard/blogs/edit/",
+  },
+
+  BRAND: {
+    LIST: "/dashboard/brand",
+    CREATE: "/dashboard/brand/create",
+    EDIT: "/dashboard/brand/edit/",
+  },
+
+  CATEGORY: {
+    LIST: "/dashboard/category",
+    CREATE: "/dashboard/category/create",
+    EDIT: "/dashboard/category/edit/",
   },
 
   ABOUTUSBANNER: {

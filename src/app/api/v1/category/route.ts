@@ -40,7 +40,11 @@ export async function GET(request: Request) {
       where: whereClause,
       include: {
         children: true, // Include subcategories
-        parent: true, // Include parent category
+        parent: {
+          include: {
+            parent: true, // Include the parent's parent
+          },
+        }, // Include parent category
       },
     });
 

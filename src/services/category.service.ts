@@ -2,7 +2,7 @@ import { ApiResponse } from "@/lib/api-response";
 import { Category } from "@prisma/client";
 
 interface GetCategoriesParams {
-  type?: "main" | "sub";
+  type?: "main" | "sub" | "last";
   parentId?: string;
 }
 

@@ -19,11 +19,11 @@ import TopLevelMenu from "./top-level-menu";
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
+    <Sidebar collapsible="icon" className=" bg-white">
+      <SidebarHeader className=" bg-white">
         <SideBarHeading title="Online Market" />
       </SidebarHeader>
-      <SidebarContent className=" scroll-bar-fit gap-0">
+      <SidebarContent className=" scroll-bar-fit gap-0 bg-white">
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -55,7 +55,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter />
+      <SidebarFooter className=" bg-white" />
     </Sidebar>
   );
 }

@@ -57,7 +57,7 @@ export const applicationMenuItems = [
   // },
   {
     title: "Dashboard",
-    url: "/",
+    url: ROUTE_PATH.DASHBOARD,
     icon: Home,
   },
   {
@@ -130,11 +130,11 @@ export const controlMenuItems = [
     items: [
       {
         title: "List",
-        url: ROUTE_PATH.Contactus.EDIT,
+        url: ROUTE_PATH.CATEGORY.LIST,
       },
       {
         title: "Create",
-        url: ROUTE_PATH.HOME.EDIT,
+        url: ROUTE_PATH.CATEGORY.CREATE,
       },
     ],
   },
@@ -145,11 +145,11 @@ export const controlMenuItems = [
     items: [
       {
         title: "List",
-        url: ROUTE_PATH.BLOG.LIST,
+        url: ROUTE_PATH.BRAND.LIST,
       },
       {
         title: "Create",
-        url: ROUTE_PATH.BLOG.CREATE,
+        url: ROUTE_PATH.BRAND.CREATE,
       },
     ],
   },

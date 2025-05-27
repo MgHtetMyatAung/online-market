@@ -5,7 +5,7 @@ import { ApiResponse } from "@/lib/api-response";
 import toast from "react-hot-toast";
 
 interface UseCategoriesParams {
-  type?: "main" | "sub";
+  type?: "main" | "sub" | "last";
   parentId?: string;
 }
 
