@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,6 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
 import { useCreateBrand } from "@/hooks/api/use-brands";
+import SubmitBtn from "@/components/actions/SubmitBtn";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -34,7 +36,7 @@ const formSchema = z.object({
 
 export default function BrandCreatePage() {
   const [files, setFiles] = useState<File[] | null>(null);
-  const { mutate, isPending } = useCreateBrand();
+  const { mutate, isPending, isSuccess } = useCreateBrand();
 
   const dropZoneConfig = {
     maxFiles: 5,
@@ -48,12 +50,18 @@ export default function BrandCreatePage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const res = await mutate(values);
-      toast.success("Brand created successfully !");
     } catch (error) {
       console.error("Form submission error", error);
       toast.error("Failed to submit the form. Please try again.");
     }
   }
+
+  useEffect(() => {
+    if (isSuccess) {
+      form.reset({ name: "", slug: "", description: "" });
+      toast.success("Brand created successfully !");
+    }
+  }, [isSuccess]);
 
   return (
     <div className=" p-10 space-y-5">
@@ -160,7 +168,7 @@ export default function BrandCreatePage() {
               />
             </div>
           </div>
-          <Button type="submit">{isPending ? "..." : "Submit"}</Button>
+          <SubmitBtn isPending={isPending} />
         </form>
       </Form>
     </div>

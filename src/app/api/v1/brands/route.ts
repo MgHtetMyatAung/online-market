@@ -7,6 +7,13 @@ import { NextRequest } from "next/server";
 export async function GET() {
   try {
     const products = await prisma.brand.findMany({
+      include: {
+        _count: {
+          select: {
+            products: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: "desc", // Order by creation date, newest first
       },

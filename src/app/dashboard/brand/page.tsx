@@ -11,14 +11,7 @@ import { Button } from "@/components/ui/button";
 // } from "@/components/ui/card";
 
 import { Input } from "@/components/ui/input";
-import {
-  Edit,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Trash2,
-  Building2,
-} from "lucide-react";
+import { Edit, MoreHorizontal, Plus, Search, Building2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +30,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { useBrands, useDeleteBrand } from "@/hooks/api/use-brands";
-import toast from "react-hot-toast";
+import DeleteConfirmBtn from "@/components/actions/DeleteConfirmBtn";
 
 // interface Brand {
 //   id: string;
@@ -113,23 +106,13 @@ export default function BrandsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   // const [brands] = useState(mockBrands);
   const { data: brands, isLoading } = useBrands();
-  const deleteBrandMutation = useDeleteBrand();
+  const { mutate, isPending, isSuccess } = useDeleteBrand();
 
   const filteredBrands = brands?.data?.filter(
     (brand) =>
       brand.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       brand.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteBrandMutation.mutateAsync(id);
-      toast.success("Brand deleted successfully!");
-    } catch (err) {
-      console.error("Error deleting brand:", err);
-      alert("Failed to delete brand.");
-    }
-  };
 
   if (isLoading) return <p>Loading ...</p>;
   if (!brands?.data) return <p>Data not found</p>;
@@ -202,7 +185,7 @@ export default function BrandsPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary">products</Badge>
+                  <Badge variant="secondary">{brand._count.products}</Badge>
                 </TableCell>
                 <TableCell>
                   <Badge variant={brand.isActive ? "default" : "secondary"}>
@@ -229,13 +212,13 @@ export default function BrandsPage() {
                       <Link href={`/dashboard/brand/products/${brand.id}`}>
                         <DropdownMenuItem>View Products</DropdownMenuItem>
                       </Link>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => handleDelete(brand.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
+                      <DeleteConfirmBtn
+                        title="Brand"
+                        targetId={brand.id}
+                        onDelete={mutate}
+                        isPending={isPending}
+                        isSuccess={isSuccess}
+                      />
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

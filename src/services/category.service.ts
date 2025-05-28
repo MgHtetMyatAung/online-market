@@ -1,6 +1,20 @@
 import { ApiResponse } from "@/lib/api-response";
 import { Category } from "@prisma/client";
 
+interface CategoryType extends Category {
+  parent?: {
+    id: string;
+    name: string;
+    parent: {
+      id: string;
+      name: string;
+    };
+  };
+  _count: {
+    products: number;
+  };
+}
+
 interface GetCategoriesParams {
   type?: "main" | "sub" | "last";
   parentId?: string;
@@ -29,7 +43,7 @@ const API_URL = "/api/v1/category";
 export const categoryService = {
   async getCategories(
     params?: GetCategoriesParams
-  ): Promise<ApiResponse<Category[]>> {
+  ): Promise<ApiResponse<CategoryType[]>> {
     const url = new URL(API_URL, window.location.origin);
     if (params?.type) {
       url.searchParams.append("type", params.type);

@@ -3,6 +3,12 @@ import { ApiResponse } from "@/lib/api-response";
 import { Brand } from "@prisma/client";
 import { z } from "zod";
 
+interface BrandType extends Brand {
+  _count: {
+    products: number;
+  };
+}
+
 const formSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
@@ -11,7 +17,7 @@ const formSchema = z.object({
 });
 
 export const brandService = {
-  async getBrands(): Promise<ApiResponse<Brand[]>> {
+  async getBrands(): Promise<ApiResponse<BrandType[]>> {
     const response = await fetch("/api/v1/brands");
     return response.json();
   },

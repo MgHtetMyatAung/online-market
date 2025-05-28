@@ -1,8 +1,23 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { categoryService } from "@/services/category.service";
 import { Category } from "@prisma/client";
 import { ApiResponse } from "@/lib/api-response";
 import toast from "react-hot-toast";
+
+interface CategoryType extends Category {
+  parent?: {
+    id: string;
+    name: string;
+    parent: {
+      id: string;
+      name: string;
+    };
+  };
+  _count: {
+    products: number;
+  };
+}
 
 interface UseCategoriesParams {
   type?: "main" | "sub" | "last";
@@ -28,7 +43,7 @@ interface UpdateCategoryPayload {
 }
 
 export const useCategories = (params?: UseCategoriesParams) => {
-  return useQuery<ApiResponse<Category[]>>({
+  return useQuery<ApiResponse<CategoryType[]>>({
     // Updated return type
     queryKey: ["categories", params],
     queryFn: () => categoryService.getCategories(params),
@@ -101,10 +116,10 @@ export const useDeleteCategory = () => {
       // 'data' here is the ApiResponse<Category>
       // Invalidate the categories list query to refetch data
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast.success(data.message || "Category deleted successfully!");
+      // toast.success(data.message || "Category deleted successfully!");
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to delete category.");
+      // toast.error(error.message || "Failed to delete category.");
     },
   });
 };

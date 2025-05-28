@@ -45,6 +45,11 @@ export async function GET(request: Request) {
             parent: true, // Include the parent's parent
           },
         }, // Include parent category
+        _count: {
+          select: {
+            products: true,
+          },
+        },
       },
     });
 

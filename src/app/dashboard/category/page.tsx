@@ -24,7 +24,6 @@ import {
   MoreHorizontal,
   Plus,
   Search,
-  Trash2,
   FolderTree,
   Building2,
   Folder,
@@ -48,8 +47,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
-import { useCategories } from "@/hooks/api/use-category";
+import { useCategories, useDeleteCategory } from "@/hooks/api/use-category";
 import { Category } from "@prisma/client";
+import DeleteConfirmBtn from "@/components/actions/DeleteConfirmBtn";
 
 type levelType = "main" | "sub" | "last";
 
@@ -61,6 +61,9 @@ interface CategoryType extends Category {
       id: string;
       name: string;
     };
+  };
+  _count: {
+    products: number;
   };
 }
 
@@ -218,6 +221,7 @@ function CategoryTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const { mutate, isSuccess, isPending } = useDeleteCategory();
 
   // Filter categories by level and search term
   const filteredCategories = useMemo(() => {
@@ -373,7 +377,7 @@ function CategoryTable({
                   )}
                   <TableCell>
                     <Badge variant="secondary" className="text-xs">
-                      {}
+                      {category._count.products}
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
@@ -404,16 +408,27 @@ function CategoryTable({
                           Edit
                         </DropdownMenuItem>
                         {level !== "last" && (
-                          <DropdownMenuItem>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add {level === "main" ? "Subcategory" : "Brand"}
-                          </DropdownMenuItem>
+                          <Link
+                            href={
+                              level === "main"
+                                ? `/dashboard/category/create?level=sub&cateId=${category.id}`
+                                : `/dashboard/category/create?level=last&cateId=${category.id}`
+                            }
+                          >
+                            <DropdownMenuItem>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add {level === "main" ? "Subcategory" : "Brand"}
+                            </DropdownMenuItem>
+                          </Link>
                         )}
                         <DropdownMenuItem>View Products</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
+                        <DeleteConfirmBtn
+                          title="Category"
+                          targetId={category.id}
+                          onDelete={mutate}
+                          isPending={isPending}
+                          isSuccess={isSuccess}
+                        />
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -501,7 +516,10 @@ export default function CategoriesPage() {
                 {mainCate?.data?.length}
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                {/* {mainCategories.reduce((sum, cat) => sum + cat.productCount, 0)}{" "} */}
+                {mainCate?.data?.reduce(
+                  (sum, cat) => sum + cat._count.products,
+                  0
+                )}{" "}
                 total products
               </p>
             </CardContent>
@@ -519,7 +537,10 @@ export default function CategoriesPage() {
                 {subCate?.data?.length}
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                {/* {subcategories.reduce((sum, cat) => sum + cat.productCount, 0)}{" "} */}
+                {subCate?.data?.reduce(
+                  (sum, cat) => sum + cat._count.products,
+                  0
+                )}{" "}
                 total products
               </p>
             </CardContent>
@@ -535,8 +556,11 @@ export default function CategoriesPage() {
                 {lastCate?.data?.length}
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                {/* {brands.reduce((sum, cat) => sum + cat.productCount, 0)} total */}
-                products
+                {lastCate?.data?.reduce(
+                  (sum, cat) => sum + cat._count.products,
+                  0
+                )}{" "}
+                total products
               </p>
             </CardContent>
           </Card>
@@ -586,19 +610,28 @@ export default function CategoriesPage() {
 
               <TabsContent value="main" className="mt-6">
                 {mainCate?.data ? (
-                  <CategoryTable categories={mainCate?.data} level="main" />
+                  <CategoryTable
+                    categories={mainCate?.data as CategoryType[]}
+                    level="main"
+                  />
                 ) : null}
               </TabsContent>
 
               <TabsContent value="sub" className="mt-6">
                 {subCate?.data ? (
-                  <CategoryTable categories={subCate?.data} level={"sub"} />
+                  <CategoryTable
+                    categories={subCate?.data as CategoryType[]}
+                    level={"sub"}
+                  />
                 ) : null}
               </TabsContent>
 
               <TabsContent value="brand" className="mt-6">
                 {lastCate?.data ? (
-                  <CategoryTable categories={lastCate?.data} level={"last"} />
+                  <CategoryTable
+                    categories={lastCate?.data as CategoryType[]}
+                    level={"last"}
+                  />
                 ) : null}
               </TabsContent>
             </Tabs>
