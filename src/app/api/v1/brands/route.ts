@@ -2,7 +2,7 @@
 import { ApiResponseHandler } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { brandSchema } from "@/lib/validations/brand";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
   try {
@@ -19,10 +19,11 @@ export async function GET() {
       },
     });
 
-    return ApiResponseHandler.success(
-      products,
-      "Brands retrieved successfully"
-    );
+    // return ApiResponseHandler.success(
+    //   products,
+    //   "Brands retrieved successfully"
+    // );
+    return NextResponse.json(products, { status: 200 });
   } catch (error) {
     console.error("Failed to fetch brands:", error); // Log the error for debugging
     return ApiResponseHandler.error(

@@ -2,7 +2,7 @@
 import { ApiResponseHandler } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validations/product"; // Ensure this Zod schema is updated
-import { NextRequest } from "next/server"; // Import UserRole enum
+import { NextRequest, NextResponse } from "next/server"; // Import UserRole enum
 
 // GET all products (for admin view, including relations)
 export async function GET(request: Request) {
@@ -51,10 +51,11 @@ export async function GET(request: Request) {
       },
     });
 
-    return ApiResponseHandler.success(
-      products,
-      "Products retrieved successfully"
-    );
+    // return ApiResponseHandler.success(
+    //   products,
+    //   "Products retrieved successfully"
+    // );
+    return NextResponse.json(products, { status: 200 });
   } catch (error) {
     console.error("Failed to fetch products:", error); // Log the error for debugging
     return ApiResponseHandler.error(

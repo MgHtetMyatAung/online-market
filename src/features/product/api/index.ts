@@ -1,5 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import api from "@/services/api";
 import { Product } from "@prisma/client";
+import { z } from "zod";
+import { typeOfProduct } from "../type";
+
+const formSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().optional(),
+  image: z.string().optional(),
+});
 
 const API_BASE_PATH = "/products";
 
@@ -7,21 +17,23 @@ export const productApi = {
   getAllProducts: async (params?: {
     category?: string;
     search?: string;
-  }): Promise<Product[]> => {
-    const response = await api.get<Product[]>(API_BASE_PATH, { params });
+  }): Promise<typeOfProduct[]> => {
+    const response = await api.get<typeOfProduct[]>(API_BASE_PATH, { params });
     return response.data;
   },
   getProductById: async (id: string): Promise<Product> => {
     const response = await api.get<Product>(`${API_BASE_PATH}/${id}`);
     return response.data;
   },
-  createProduct: async (productData: Omit<Product, "id">): Promise<Product> => {
+  createProduct: async (
+    productData: z.infer<typeof formSchema>
+  ): Promise<Product> => {
     const response = await api.post<Product>(API_BASE_PATH, productData);
     return response.data;
   },
   updateProduct: async (
     id: string,
-    productData: Partial<Omit<Product, "id">>
+    productData: z.infer<typeof formSchema>
   ): Promise<Product> => {
     const response = await api.put<Product>(
       `${API_BASE_PATH}/${id}`,

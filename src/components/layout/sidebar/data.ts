@@ -100,7 +100,7 @@ export const controlMenuItems = [
     items: [
       {
         title: "List",
-        url: ROUTE_PATH.HOME.EDIT,
+        url: ROUTE_PATH.ORDER.LIST,
       },
       {
         title: "Create",
@@ -115,11 +115,11 @@ export const controlMenuItems = [
     items: [
       {
         title: "List",
-        url: ROUTE_PATH.HOME.EDIT,
+        url: ROUTE_PATH.PRODUCT.LIST,
       },
       {
         title: "Create",
-        url: ROUTE_PATH.HOME.EDIT,
+        url: ROUTE_PATH.PRODUCT.EDIT,
       },
     ],
   },
