@@ -12,7 +12,7 @@ export default function SideBarHeading({ title }: { title: string }) {
         alt="logo"
         width={100}
         height={100}
-        className=" w-10 h-10"
+        className=" w-6 h-6"
       />
       {(open || isMobile) && (
         <h3 className=" text-lg font-bold text-nowrap text-secondary-blue overflow-hidden">
