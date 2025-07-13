@@ -30,6 +30,7 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { PaginationUi } from "../common/PaginationUi";
+import { useColumnVisibilityStore } from "@/store/columnVisibilityStore";
 
 // Define a generic type for your table data
 type TableDataItem = Record<string, any>;
@@ -59,6 +60,22 @@ interface DataTableProps<TData extends TableDataItem> {
   topRightComponent?: ReactNode;
   initialColumnVisibility?: VisibilityState; // Optional: for setting default hidden columns
   label: string;
+  tableId: string;
+}
+
+function checkAlign(align: "left" | "center" | "right", type: "th" | "td") {
+  if (type === "th") {
+    return {
+      "justify-start": align === "left",
+      "justify-end": align === "right",
+      "justify-center": align === "center",
+    };
+  }
+  return {
+    "text-left": align === "left",
+    "text-right": align === "right",
+    "text-center": align === "center",
+  };
 }
 
 function DataTable<TData extends TableDataItem>({
@@ -80,15 +97,26 @@ function DataTable<TData extends TableDataItem>({
   topRightComponent,
   initialColumnVisibility,
   label,
+  tableId,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    initialColumnVisibility || {}
-  );
-  //   const [showColumnVisibilityControls, setShowColumnVisibilityControls] =
-  //     useState(false);
+
+  // --- ZUSTAND INTEGRATION START ---
+  const { tableColumnVisibility, setColumnVisibility } =
+    useColumnVisibilityStore();
+  // Get initial visibility from the store, or default to an empty object
+  const initialVisibility = tableColumnVisibility[tableId] || {};
+
+  const [columnVisibility, setInternalColumnVisibility] =
+    useState<VisibilityState>(
+      initialColumnVisibility || initialVisibility || {}
+    );
+
+  useEffect(() => {
+    setColumnVisibility(tableId, columnVisibility);
+  }, [columnVisibility, tableId, setColumnVisibility]);
 
   // Memoize columns to prevent unnecessary re-renders of the table instance
   const memoizedColumns = useMemo(() => {
@@ -133,7 +161,7 @@ function DataTable<TData extends TableDataItem>({
       : undefined,
     onColumnFiltersChange: enableColumnFilters ? setColumnFilters : undefined,
     onColumnVisibilityChange: enableColumnVisibility
-      ? setColumnVisibility
+      ? setInternalColumnVisibility
       : undefined,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: enablePagination
@@ -248,7 +276,7 @@ function DataTable<TData extends TableDataItem>({
                     key={header.id}
                     colSpan={header.colSpan}
                     className={clsx(
-                      "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+                      "px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider",
                       {
                         "cursor-pointer select-none":
                           header.column.getCanSort(),
@@ -257,7 +285,16 @@ function DataTable<TData extends TableDataItem>({
                     onClick={header.column.getToggleSortingHandler()}
                   >
                     {header.isPlaceholder ? null : (
-                      <div className="flex items-center gap-1">
+                      <div
+                        className={clsx(
+                          "flex items-center gap-1",
+                          checkAlign(
+                            header.column.columnDef.meta?.style.textAlign ||
+                              "left",
+                            "th"
+                          )
+                        )}
+                      >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
@@ -310,7 +347,13 @@ function DataTable<TData extends TableDataItem>({
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      className={clsx(
+                        "px-6 py-4 whitespace-nowrap text-sm text-gray-900",
+                        checkAlign(
+                          cell.column.columnDef.meta?.style.textAlign || "left",
+                          "td"
+                        )
+                      )}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -330,7 +373,7 @@ function DataTable<TData extends TableDataItem>({
           currentPage={Number(pagination.pageIndex + 1)}
           totalPages={getPageCount()}
           pageSize={pagination.pageSize}
-          totalItems={data.length}
+          totalItems={data?.length}
           onPageChange={setPageIndex}
           onPageSizeChange={setPageSize}
           pageSizeOptions={pageSizeOptions}

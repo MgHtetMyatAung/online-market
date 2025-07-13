@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/table/DataTable";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Brand } from "@prisma/client";
 import { useGetBrands } from "../api/queries";
@@ -11,6 +10,17 @@ import { typeOfBrand } from "../type";
 import { sliceString } from "@/lib/util/sliceString";
 import LinkButton from "@/components/actions/LinkButton";
 import { ROUTE_PATH } from "@/constants/router";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal } from "lucide-react";
+import Link from "next/link";
 
 function BrandListTable() {
   const { data: brands, isLoading, isFetching } = useGetBrands();
@@ -85,6 +95,7 @@ function BrandListTable() {
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Brands</h2>
       <DataTable
+        tableId="brand"
         label="Brands"
         data={brands!}
         columns={columns}
@@ -94,20 +105,29 @@ function BrandListTable() {
         enablePagination
         pageSizeOptions={[5, 10, 20]} // Different page size options
         initialPageSize={5}
-        renderRowActions={(product: Brand) => (
+        renderRowActions={(brand: Brand) => (
           <div className="flex gap-2">
-            <button
-              onClick={() => handleView(product)}
-              className="text-green-600 hover:text-green-900"
-            >
-              View
-            </button>
-            <button
-              onClick={() => alert(`Edit ${product.name}`)}
-              className="text-indigo-600 hover:text-indigo-900"
-            >
-              Edit
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem>View details</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`${ROUTE_PATH.BRAND.EDIT}${brand.id}`}>
+                    Edit brand
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600">
+                  Delete brand
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
         topRightComponent={

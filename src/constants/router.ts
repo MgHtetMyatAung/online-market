@@ -38,6 +38,13 @@ export const ROUTE_PATH = {
     EDIT: "/dashboard/category/edit/",
   },
 
+  CUSTOMER: {
+    LIST: "/dashboard/customer",
+    CREATE: "/dashboard/customer/create",
+    EDIT: "/dashboard/customer/edit/",
+    VIEW: "/dashboard/customer/view/",
+  },
+
   ABOUTUSBANNER: {
     EDIT: "/aboutusbanner/edit",
   },

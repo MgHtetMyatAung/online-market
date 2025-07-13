@@ -85,11 +85,15 @@ export const controlMenuItems = [
     items: [
       {
         title: "List",
-        url: ROUTE_PATH.HOME.EDIT,
+        url: ROUTE_PATH.CUSTOMER.LIST,
       },
       {
         title: "Create",
-        url: ROUTE_PATH.HOME.EDIT,
+        url: ROUTE_PATH.CUSTOMER.CREATE,
+      },
+      {
+        title: "View",
+        url: ROUTE_PATH.CUSTOMER.VIEW,
       },
     ],
   },

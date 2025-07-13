@@ -45,7 +45,7 @@ export default function DeleteConfirmBtn({
   return (
     <AlertDialog open={open}>
       <AlertDialogTrigger
-        className=" flex gap-2 px-2 items-center w-full mb-2 hover:bg-gray-100 text-destructive"
+        className=" flex gap-2 px-2 py-1 items-center w-full mb-1 hover:bg-gray-100 text-destructive"
         onClick={() => setOpen(true)}
       >
         <Trash2 className="h-4 w-4 mr-2" />

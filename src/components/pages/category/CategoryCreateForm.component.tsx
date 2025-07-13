@@ -35,6 +35,7 @@ import { Switch } from "@/components/ui/switch";
 import { useCategories, useCreateCategory } from "@/hooks/api/use-category";
 import { useRouter, useSearchParams } from "next/navigation";
 import SubmitBtn from "@/components/actions/SubmitBtn";
+import { useGetCategories } from "@/features/category/api/queries";
 
 const formSchema = z.object({
   category_level: z.string().optional(),
@@ -74,20 +75,26 @@ export default function CategoryCreateForm() {
     defaultValues: {
       isActive: true,
       category_level: getLevelValue(),
-      parentId: cateId ? cateId : "",
+      parentId: cateId ? cateId : "0",
     },
   });
 
   const level = form.watch("category_level");
 
-  const { data } = useCategories({
+  const { data } = useGetCategories({
     type: level === "1" ? "main" : "sub",
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const { category_level, ...others } = values;
+    const { category_level, parentId, ...others } = values;
+    let data;
+    if (parentId !== "0") {
+      data = { ...others, parentId };
+    } else {
+      data = { ...others };
+    }
     try {
-      await mutate(others);
+      await mutate(data);
     } catch (error) {
       console.error("Form submission error", error);
     }
@@ -118,10 +125,12 @@ export default function CategoryCreateForm() {
         description: "",
         isActive: true,
         category_level: getLevelValue(),
-        parentId: cateId ? cateId : "",
+        parentId: cateId ? cateId : "0",
       });
     }
   }, [isSuccess]);
+
+  console.log(form.formState.errors, "errors");
 
   return (
     <div className=" p-10">
@@ -313,7 +322,7 @@ export default function CategoryCreateForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className=" bg-white">
-                          {data?.data?.map((item) => (
+                          {data?.map((item) => (
                             <SelectItem key={item.id} value={item.id}>
                               {item.name}
                             </SelectItem>

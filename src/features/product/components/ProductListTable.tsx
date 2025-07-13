@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/table/DataTable";
 import { Button } from "@/components/ui/button";
@@ -65,11 +65,21 @@ function ProductListTable() {
         accessorKey: "price",
         header: "Price",
         cell: (info) => `${Number(info.getValue()).toFixed(2)} MMK`,
+        meta: {
+          style: {
+            textAlign: "right",
+          },
+        },
       },
       {
         accessorKey: "stock",
         header: "Stock",
         cell: (info) => <>{checkStock(Number(info.getValue()), 10)}</>,
+        meta: {
+          style: {
+            textAlign: "right",
+          },
+        },
       },
       {
         accessorKey: "isActive",
@@ -94,6 +104,7 @@ function ProductListTable() {
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Products</h2>
       <DataTable
+        tableId="products"
         label="Products"
         data={products!}
         columns={columns}

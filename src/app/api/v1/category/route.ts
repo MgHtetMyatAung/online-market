@@ -2,6 +2,7 @@
 import { PrismaClient } from "@prisma/client";
 import { ApiResponseHandler } from "@/lib/api-response";
 import { z } from "zod";
+import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
@@ -53,11 +54,12 @@ export async function GET(request: Request) {
       },
     });
 
-    return ApiResponseHandler.success(
-      categories,
-      "Categories fetched successfully",
-      200
-    );
+    // return ApiResponseHandler.success(
+    //   categories,
+    //   "Categories fetched successfully",
+    //   200
+    // );
+    return NextResponse.json(categories, { status: 200 });
   } catch (error) {
     console.error("Error fetching categories:", error);
     return ApiResponseHandler.error(

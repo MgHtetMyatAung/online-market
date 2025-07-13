@@ -1,7 +1,22 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import React, { useMemo, useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/table/DataTable";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal } from "lucide-react";
+import Link from "next/link";
+import { ROUTE_PATH } from "@/constants/router";
+import Image from "next/image";
 
 // Example Product Data Type
 interface Product {
@@ -194,9 +209,11 @@ function OrderListTable() {
         accessorKey: "imageUrl",
         header: "Image",
         cell: (info) => (
-          <img
-            src={String(info.getValue())}
+          <Image
+            src={"/image/default.png"}
             alt="Product"
+            width={100}
+            height={100}
             className="h-10 w-10 object-cover rounded"
           />
         ),
@@ -243,15 +260,11 @@ function OrderListTable() {
     []
   );
 
-  const handleView = (product: Product) => {
-    alert(`Viewing product: ${product.name}`);
-    // Navigate to product detail page
-  };
-
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Orders</h2>
       <DataTable
+        tableId="orders"
         label="Orders"
         data={products}
         columns={columns}
@@ -261,20 +274,29 @@ function OrderListTable() {
         enablePagination
         pageSizeOptions={[5, 10, 20]} // Different page size options
         initialPageSize={5}
-        renderRowActions={(product: Product) => (
+        renderRowActions={(order: Product) => (
           <div className="flex gap-2">
-            <button
-              onClick={() => handleView(product)}
-              className="text-green-600 hover:text-green-900"
-            >
-              View
-            </button>
-            <button
-              onClick={() => alert(`Edit ${product.name}`)}
-              className="text-indigo-600 hover:text-indigo-900"
-            >
-              Edit
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem>View details</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`${ROUTE_PATH.ORDER.EDIT}${order.id}`}>
+                    Edit order
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600">
+                  Delete order
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       />

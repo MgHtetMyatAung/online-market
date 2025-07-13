@@ -119,10 +119,10 @@ model Product {
   instock       Boolean  @default(true)
 
   categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   brandId String?
-  brand   Brand?  @relation(fields: [brandId], references: [id])
+  brand   Brand?  @relation(fields: [brandId], references: [id], onDelete: Cascade)
 
   // UPDATED: promotionId is now nullable and NOT unique
   promotionId String?
