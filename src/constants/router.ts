@@ -17,6 +17,7 @@ export const ROUTE_PATH = {
     LIST: "/dashboard/brand",
     CREATE: "/dashboard/brand/create",
     EDIT: "/dashboard/brand/edit/",
+    VIEW: "/dashboard/brand/products/",
   },
 
   PRODUCT: {

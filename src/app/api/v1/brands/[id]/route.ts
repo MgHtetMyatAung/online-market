@@ -1,7 +1,7 @@
 import { ApiResponseHandler } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
 import { brandSchema } from "@/lib/validations/brand";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
@@ -21,7 +21,8 @@ export async function GET(
       );
     }
 
-    return ApiResponseHandler.success(brand, "Brand retrieved successfully");
+    // return ApiResponseHandler.success(brand, "Brand retrieved successfully");
+    return NextResponse.json(brand, { status: 200 });
   } catch (error) {
     return ApiResponseHandler.error(
       "Failed to fetch brand",

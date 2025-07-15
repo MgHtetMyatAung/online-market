@@ -61,6 +61,7 @@ interface DataTableProps<TData extends TableDataItem> {
   initialColumnVisibility?: VisibilityState; // Optional: for setting default hidden columns
   label: string;
   tableId: string;
+  dataNotFoundComponent?: ReactNode;
 }
 
 function checkAlign(align: "left" | "center" | "right", type: "th" | "td") {
@@ -95,6 +96,7 @@ function DataTable<TData extends TableDataItem>({
   onGlobalFilterChange,
   onPaginationChange,
   topRightComponent,
+  dataNotFoundComponent,
   initialColumnVisibility,
   label,
   tableId,
@@ -338,7 +340,7 @@ function DataTable<TData extends TableDataItem>({
                   colSpan={columns.length + (renderRowActions ? 1 : 0)}
                   className="py-8 text-center text-gray-500"
                 >
-                  {emptyMessage}
+                  {dataNotFoundComponent || emptyMessage}
                 </td>
               </tr>
             ) : (

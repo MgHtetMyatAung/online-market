@@ -7,3 +7,9 @@ interface typeOfProduct extends Product {
     slug: string;
   };
 }
+
+interface GetProductsParams {
+  brandId?: string;
+  categoryId?: string;
+  promotionId?: string;
+}

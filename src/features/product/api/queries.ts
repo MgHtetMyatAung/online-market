@@ -3,11 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { productApi } from ".";
 import { queryKeys } from "@/services/query-keys";
+import { GetProductsParams } from "../type";
 
-export const useGetProducts = (params?: {
-  category?: string;
-  search?: string;
-}) => {
+export const useGetProducts = (params?: GetProductsParams) => {
   return useQuery({
     queryKey: queryKeys.products(params),
     queryFn: () => productApi.getAllProducts(params),

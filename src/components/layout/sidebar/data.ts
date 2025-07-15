@@ -123,7 +123,7 @@ export const controlMenuItems = [
       },
       {
         title: "Create",
-        url: ROUTE_PATH.PRODUCT.EDIT,
+        url: ROUTE_PATH.PRODUCT.CREATE,
       },
     ],
   },

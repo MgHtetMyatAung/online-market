@@ -3,13 +3,7 @@
 import React, { useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/table/DataTable";
-import Image from "next/image";
-import { Brand } from "@prisma/client";
-import { useGetBrands } from "../api/queries";
-import { typeOfBrand } from "../type";
-import { sliceString } from "@/lib/util/sliceString";
-import LinkButton from "@/components/actions/LinkButton";
-import { ROUTE_PATH } from "@/constants/router";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,17 +13,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Package, Plus } from "lucide-react";
 import Link from "next/link";
+import { ROUTE_PATH } from "@/constants/router";
+import Image from "next/image";
+import { useGetProducts } from "@/features/product/api/queries";
+import { typeOfProduct } from "@/features/product/type";
+import { checkStock } from "@/lib/util/checkStock";
+import { Product } from "@prisma/client";
+import { useGetBrandById } from "../api/queries";
 
-function BrandListTable() {
-  const { data: brands, isLoading, isFetching } = useGetBrands();
+interface Props {
+  brandId: string;
+}
 
-  const columns = useMemo<ColumnDef<typeOfBrand>[]>(
+function ProductListTableByBrand({ brandId }: Props) {
+  const { data: products, isLoading, isFetching } = useGetProducts({ brandId });
+  const { data: brandDetail } = useGetBrandById(brandId);
+
+  const columns = useMemo<ColumnDef<typeOfProduct>[]>(
     () => [
       {
-        accessorKey: "image",
-        header: "Logo",
+        accessorKey: "imageUrl",
+        header: "Image",
         cell: (info) => (
           <Image
             src={"/image/default.png"}
@@ -44,7 +50,7 @@ function BrandListTable() {
       },
       {
         accessorKey: "name",
-        header: "Name",
+        header: "Product Name",
         cell: (info) => (
           <span className="font-medium text-blue-600">
             {String(info.getValue())}
@@ -52,18 +58,33 @@ function BrandListTable() {
         ),
       },
       {
-        accessorKey: "description",
-        header: "Description",
-        cell: (info) => (
+        accessorKey: "category",
+        header: "Category",
+        cell: ({ row }) => (
           <span className="text-gray-700">
-            {sliceString(String(info.getValue()), 20)}
+            {String(row.original.category.name)}
           </span>
         ),
       },
       {
-        accessorKey: "product",
-        header: "Products",
-        cell: ({ row }) => `${Number(row.original._count.products)}`,
+        accessorKey: "price",
+        header: "Price",
+        cell: (info) => `${Number(info.getValue()).toFixed(2)} MMK`,
+        meta: {
+          style: {
+            textAlign: "right",
+          },
+        },
+      },
+      {
+        accessorKey: "stock",
+        header: "Stock",
+        cell: (info) => <>{checkStock(Number(info.getValue()), 10)}</>,
+        meta: {
+          style: {
+            textAlign: "right",
+          },
+        },
       },
       {
         accessorKey: "isActive",
@@ -84,20 +105,12 @@ function BrandListTable() {
     []
   );
 
-  const handleView = (brand: Brand) => {
-    alert(`Viewing brand: ${brand.name}`);
-    // Navigate to product detail page
-  };
-
-  console.log(brands, brands);
-
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Brands</h2>
+    <div className="py-4">
       <DataTable
-        tableId="brand"
-        label="Brands"
-        data={brands!}
+        tableId="products"
+        label="Products"
+        data={products!}
         columns={columns}
         isLoading={isLoading || isFetching}
         emptyMessage="No products found."
@@ -105,7 +118,7 @@ function BrandListTable() {
         enablePagination
         pageSizeOptions={[5, 10, 20]} // Different page size options
         initialPageSize={5}
-        renderRowActions={(brand: Brand) => (
+        renderRowActions={(product: Product) => (
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -116,30 +129,41 @@ function BrandListTable() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem>View details</DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`${ROUTE_PATH.BRAND.VIEW}${brand.id}`}>
-                    View details
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={`${ROUTE_PATH.BRAND.EDIT}${brand.id}`}>
-                    Edit brand
+                  <Link href={`${ROUTE_PATH.PRODUCT.EDIT}${product.id}`}>
+                    Edit product
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem>Duplicate</DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600">
-                  Delete brand
+                  Delete product
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         )}
-        topRightComponent={
-          <LinkButton href={ROUTE_PATH.BRAND.CREATE}>Add Brand</LinkButton>
+        topRightComponent={<Button>Add Product</Button>}
+        dataNotFoundComponent={
+          <div className="text-center py-8">
+            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No products found</h3>
+            <p className="text-muted-foreground mb-4">
+              {`${brandDetail?.name} doesn't have any products yet.`}{" "}
+              <span> Add First Product</span>
+            </p>
+            {/* <Button asChild>
+              <Link href={ROUTE_PATH.PRODUCT.CREATE}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add First Product
+              </Link>
+            </Button> */}
+          </div>
         }
       />
     </div>
   );
 }
 
-export default BrandListTable;
+export default ProductListTableByBrand;

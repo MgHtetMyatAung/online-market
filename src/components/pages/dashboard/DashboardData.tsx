@@ -76,13 +76,13 @@ export default function DashboardData() {
                 <CardTitle className="text-sm font-medium truncate pr-2">
                   {stat.title}
                 </CardTitle>
-                <stat.icon className={`h-4 w-4 shrink-0 ${stat.color}`} />
+                <stat.icon size={24} className={` shrink-0 ${stat.color}`} />
               </CardHeader>
               <CardContent>
-                <div className="text-xl lg:text-2xl font-bold">
+                <div className="text-xl lg:text-2xl font-bold mb-1">
                   {stat.value}
                 </div>
-                <p className="text-xs text-muted-foreground truncate">
+                <p className="text-sm text-muted-foreground truncate">
                   {stat.description}
                 </p>
               </CardContent>

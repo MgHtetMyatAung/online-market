@@ -2,7 +2,7 @@
 import api from "@/services/api";
 import { Product } from "@prisma/client";
 import { z } from "zod";
-import { typeOfProduct } from "../type";
+import { GetProductsParams, typeOfProduct } from "../type";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -14,10 +14,9 @@ const formSchema = z.object({
 const API_BASE_PATH = "/products";
 
 export const productApi = {
-  getAllProducts: async (params?: {
-    category?: string;
-    search?: string;
-  }): Promise<typeOfProduct[]> => {
+  getAllProducts: async (
+    params?: GetProductsParams
+  ): Promise<typeOfProduct[]> => {
     const response = await api.get<typeOfProduct[]>(API_BASE_PATH, { params });
     return response.data;
   },
