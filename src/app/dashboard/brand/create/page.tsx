@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -24,14 +23,16 @@ import {
 } from "@/components/ui/file-upload";
 import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
-import { useCreateBrand } from "@/hooks/api/use-brands";
 import SubmitBtn from "@/components/actions/SubmitBtn";
+import { Switch } from "@/components/ui/switch";
+import { useCreateBrand } from "@/features/brand/api/mutations";
 
 const formSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   description: z.string().optional(),
   image: z.string().optional(),
+  isActive: z.boolean().optional(),
 });
 
 export default function BrandCreatePage() {
@@ -45,6 +46,9 @@ export default function BrandCreatePage() {
   };
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      isActive: true,
+    },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -52,14 +56,12 @@ export default function BrandCreatePage() {
       const res = await mutate(values);
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
     }
   }
 
   useEffect(() => {
     if (isSuccess) {
-      form.reset({ name: "", slug: "", description: "" });
-      toast.success("Brand created successfully !");
+      form.reset({ name: "", slug: "", description: "", isActive: true });
     }
   }, [isSuccess]);
 
@@ -115,6 +117,25 @@ export default function BrandCreatePage() {
                     </FormControl>
 
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white">
+                    <div className="space-y-0.5">
+                      <FormLabel>Is brand active</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-readonly
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />

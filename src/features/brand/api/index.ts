@@ -10,6 +10,7 @@ const formSchema = z.object({
   slug: z.string().min(1),
   description: z.string().optional(),
   image: z.string().optional(),
+  isActive: z.boolean().optional(),
 });
 
 export const brandApi = {

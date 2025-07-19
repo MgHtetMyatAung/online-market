@@ -10,9 +10,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { LoaderCircle, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { LoaderCircle } from "lucide-react";
 
 export default function DeleteConfirmBtn({
   targetId,
@@ -20,12 +19,14 @@ export default function DeleteConfirmBtn({
   isPending,
   isSuccess,
   title,
+  children,
 }: {
   targetId: string;
   onDelete: (id: string) => void;
   isPending: boolean;
   isSuccess: boolean;
   title: string;
+  children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const handleDelete = async () => {
@@ -33,23 +34,20 @@ export default function DeleteConfirmBtn({
       await onDelete(targetId);
     } catch (err) {
       console.error("Error deleting brand:", err);
-      toast.error(`Failed to ${title.toLocaleLowerCase()} brand.`);
     }
   };
   useEffect(() => {
     if (isSuccess) {
       setOpen(false);
-      toast.success(`${title} deleted successfully!`);
     }
   }, [isSuccess, title]);
   return (
     <AlertDialog open={open}>
       <AlertDialogTrigger
-        className=" flex gap-2 px-2 py-1 items-center w-full mb-1 hover:bg-gray-100 text-destructive"
+        className=" w-full text-sm text-start px-2 text-red-500 pb-2 hover:text-red-700"
         onClick={() => setOpen(true)}
       >
-        <Trash2 className="h-4 w-4 mr-2" />
-        Delete
+        {children}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -63,13 +61,13 @@ export default function DeleteConfirmBtn({
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            className=" bg-red-500 hover:bg-red-500 min-w-[90px]"
+            className=" bg-red-500 hover:bg-red-500 w-[100px]"
             onClick={handleDelete}
           >
             {isPending ? (
               <LoaderCircle size={18} className=" animate-spin" />
             ) : (
-              "Delete"
+              title || "Submit"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

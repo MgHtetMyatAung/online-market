@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -24,23 +23,23 @@ import {
 } from "@/components/ui/file-upload";
 import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
-import {
-  useBrand,
-  useCreateBrand,
-  useUpdateBrand,
-} from "@/hooks/api/use-brands";
 import { useRouter } from "next/navigation";
+import { useGetBrandById } from "@/features/brand/api/queries";
+import { Switch } from "../ui/switch";
+import SubmitBtn from "../actions/SubmitBtn";
+import { useUpdateBrand } from "@/features/brand/api/mutations";
 
 const formSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   description: z.string().optional(),
   image: z.string().optional(),
+  isActive: z.boolean().optional(),
 });
 
 export default function BrandEditForm({ id }: { id: string }) {
   const route = useRouter();
-  const { data: brandDetail, isLoading: brandLoading } = useBrand(id);
+  const { data: brandDetail, isLoading: brandLoading } = useGetBrandById(id);
   const [files, setFiles] = useState<File[] | null>(null);
   const { mutate, isPending } = useUpdateBrand();
 
@@ -54,22 +53,22 @@ export default function BrandEditForm({ id }: { id: string }) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values, "brand data");
     try {
       const res = await mutate({ id, data: values });
-      toast.success("Brand updated successfully !");
-      route.push("/dashboard/brand");
+      route.back();
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
     }
   }
 
   useEffect(() => {
-    if (brandDetail?.data) {
-      form.setValue("name", brandDetail.data.name);
-      form.setValue("slug", brandDetail.data.slug);
-      form.setValue("description", brandDetail.data.description || "");
-      form.setValue("image", brandDetail.data.image || "");
+    if (brandDetail) {
+      form.setValue("name", brandDetail.name);
+      form.setValue("slug", brandDetail.slug);
+      form.setValue("description", brandDetail.description || "");
+      form.setValue("image", brandDetail.image || "");
+      form.setValue("isActive", brandDetail.isActive || false);
     }
   }, [brandDetail]);
 
@@ -136,6 +135,25 @@ export default function BrandEditForm({ id }: { id: string }) {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-white">
+                    <div className="space-y-0.5">
+                      <FormLabel>Is brand active</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-readonly
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
             <div>
               <FormField
@@ -186,7 +204,7 @@ export default function BrandEditForm({ id }: { id: string }) {
               />
             </div>
           </div>
-          <Button type="submit">{isPending ? "..." : "Update"}</Button>
+          <SubmitBtn title="Update" isPending={isPending} />
         </form>
       </Form>
     </div>

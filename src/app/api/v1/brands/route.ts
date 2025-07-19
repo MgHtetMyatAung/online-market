@@ -56,10 +56,14 @@ export async function POST(req: NextRequest) {
     const brandDetail = await prisma.brand.findUnique({ where: { slug } });
 
     if (brandDetail) {
-      return ApiResponseHandler.error(
-        "Brand already exist !",
-        400,
-        "Brand already exist !"
+      // return ApiResponseHandler.error(
+      //   "Brand already exist !",
+      //   400,
+      //   "Brand already exist !"
+      // );
+      return NextResponse.json(
+        { message: "Brand already exist!" },
+        { status: 400 }
       );
     }
 
@@ -67,7 +71,8 @@ export async function POST(req: NextRequest) {
       data: body,
     });
 
-    return ApiResponseHandler.success(brand, "Brand created successfully", 201);
+    // return ApiResponseHandler.success(brand, "Brand created successfully", 201);
+    return NextResponse.json(brand, { status: 201 });
   } catch (error) {
     return ApiResponseHandler.error("Server error", 500, "");
   }

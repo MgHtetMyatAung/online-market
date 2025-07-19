@@ -137,8 +137,10 @@ export default function ProductsListByBrandId({ id }: { id: string }) {
               </h2>
               <Badge
                 className={clsx({
-                  "bg-green-400": brand.isActive,
-                  "bg-red-400": !brand.isActive,
+                  "bg-green-100 text-green-800 hover:bg-green-100 hover:text-green-800":
+                    brand.isActive,
+                  "bg-red-100 text-red-800 hover:bg-red-100 hover:text-red-800":
+                    !brand.isActive,
                 })}
               >
                 {brand.isActive ? "Active" : "Inactive"}

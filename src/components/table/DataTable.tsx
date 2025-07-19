@@ -31,6 +31,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { PaginationUi } from "../common/PaginationUi";
 import { useColumnVisibilityStore } from "@/store/columnVisibilityStore";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // Define a generic type for your table data
 type TableDataItem = Record<string, any>;
@@ -101,9 +102,14 @@ function DataTable<TData extends TableDataItem>({
   label,
   tableId,
 }: DataTableProps<TData>) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const initialPage = Number(searchParams.get("page")) || 1;
+  const initialSize = Number(searchParams.get("size")) || initialPageSize;
 
   // --- ZUSTAND INTEGRATION START ---
   const { tableColumnVisibility, setColumnVisibility } =
@@ -115,6 +121,20 @@ function DataTable<TData extends TableDataItem>({
     useState<VisibilityState>(
       initialColumnVisibility || initialVisibility || {}
     );
+
+  // Update URL when pagination changes
+  const handlePaginationChange = (pagination: {
+    pageIndex: number;
+    pageSize: number;
+  }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", (pagination.pageIndex + 1).toString());
+    params.set("size", pagination.pageSize.toString());
+    router.push(`?${params.toString()}`);
+
+    // Call the original onPaginationChange if provided
+    onPaginationChange?.(pagination);
+  };
 
   useEffect(() => {
     setColumnVisibility(tableId, columnVisibility);
@@ -144,6 +164,10 @@ function DataTable<TData extends TableDataItem>({
       globalFilter,
       columnFilters,
       columnVisibility,
+      pagination: {
+        pageIndex: initialPage - 1, // Convert 1-based to 0-based
+        pageSize: initialSize,
+      },
     },
     onSortingChange: enableSorting
       ? (updater) => {
@@ -376,8 +400,20 @@ function DataTable<TData extends TableDataItem>({
           totalPages={getPageCount()}
           pageSize={pagination.pageSize}
           totalItems={data?.length}
-          onPageChange={setPageIndex}
-          onPageSizeChange={setPageSize}
+          onPageChange={(page) => {
+            setPageIndex(page - 1);
+            handlePaginationChange({
+              pageIndex: page,
+              pageSize: getState().pagination.pageSize,
+            });
+          }}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            handlePaginationChange({
+              pageIndex: 0, // Reset to first page when changing size
+              pageSize: size,
+            });
+          }}
           pageSizeOptions={pageSizeOptions}
           nextPage={nextPage}
           previousPage={previousPage}

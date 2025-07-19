@@ -1,16 +1,29 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/services/query-keys";
 import { productApi } from ".";
-import { Product } from "@prisma/client";
+import { z } from "zod";
+
+const formSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().optional(),
+  image: z.string().optional(),
+});
 
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newProduct: Omit<Product, "id">) =>
-      productApi.createProduct(newProduct),
+    mutationFn: (newProduct: Omit<z.infer<typeof formSchema>, "id">) =>
+      productApi.createProduct({
+        name: newProduct.name,
+        slug: newProduct.slug,
+        image: newProduct.image || undefined,
+        description: newProduct.description || undefined,
+      }),
     onSuccess: () => {
       // Invalidate the 'products' query to refetch the list after a new product is created
       queryClient.invalidateQueries({ queryKey: queryKeys.products() });
@@ -31,8 +44,14 @@ export const useUpdateProduct = () => {
       data,
     }: {
       id: string;
-      data: Partial<Omit<Product, "id">>;
-    }) => productApi.updateProduct(id, data),
+      data: Partial<Omit<z.infer<typeof formSchema>, "id">>;
+    }) =>
+      productApi.updateProduct(id, {
+        name: data.name ?? "",
+        slug: data.slug ?? "",
+        description: data.description,
+        image: data.image,
+      }),
     onSuccess: (updatedProduct) => {
       // Invalidate both the specific product query and the products list
       queryClient.invalidateQueries({

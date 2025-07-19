@@ -68,6 +68,8 @@ export function PaginationUi({
     return rangeWithDots;
   };
 
+  console.log(currentPage, "page");
+
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white border-t">
       <div className="flex items-center space-x-2 text-sm">

@@ -21,9 +21,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import DeleteConfirmBtn from "@/components/actions/DeleteConfirmBtn";
+import { useDeleteBrand } from "../api/mutations";
 
 function BrandListTable() {
-  const { data: brands, isLoading, isFetching } = useGetBrands();
+  const { data: brands, isLoading } = useGetBrands();
+  const { mutate, isPending, isSuccess } = useDeleteBrand();
 
   const columns = useMemo<ColumnDef<typeOfBrand>[]>(
     () => [
@@ -84,13 +87,6 @@ function BrandListTable() {
     []
   );
 
-  const handleView = (brand: Brand) => {
-    alert(`Viewing brand: ${brand.name}`);
-    // Navigate to product detail page
-  };
-
-  console.log(brands, brands);
-
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Brands</h2>
@@ -99,7 +95,7 @@ function BrandListTable() {
         label="Brands"
         data={brands!}
         columns={columns}
-        isLoading={isLoading || isFetching}
+        isLoading={isLoading}
         emptyMessage="No products found."
         enableGlobalFilter
         enablePagination
@@ -127,8 +123,16 @@ function BrandListTable() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600">
-                  Delete brand
+                <DropdownMenuItem asChild>
+                  <DeleteConfirmBtn
+                    title="Brand"
+                    targetId={brand.id}
+                    onDelete={mutate}
+                    isPending={isPending}
+                    isSuccess={isSuccess}
+                  >
+                    Delete brand
+                  </DeleteConfirmBtn>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

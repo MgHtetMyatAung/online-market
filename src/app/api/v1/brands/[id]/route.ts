@@ -58,7 +58,8 @@ export async function PUT(
       data: body,
     });
 
-    return ApiResponseHandler.success(brand, "Brand updated successfully");
+    // return ApiResponseHandler.success(brand, "Brand updated successfully");
+    return NextResponse.json(brand, { status: 200 });
   } catch (error) {
     return ApiResponseHandler.error(
       "Failed to update brand",
