@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useMemo, useEffect, ReactNode } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  ReactNode,
+  Suspense,
+} from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -80,7 +86,7 @@ function checkAlign(align: "left" | "center" | "right", type: "th" | "td") {
   };
 }
 
-function DataTable<TData extends TableDataItem>({
+function DataListTable<TData extends TableDataItem>({
   data,
   columns,
   isLoading = false,
@@ -423,6 +429,14 @@ function DataTable<TData extends TableDataItem>({
         />
       )}
     </div>
+  );
+}
+
+function DataTable<TData extends TableDataItem>(props: DataTableProps<TData>) {
+  return (
+    <Suspense>
+      <DataListTable {...props} />
+    </Suspense>
   );
 }
 
