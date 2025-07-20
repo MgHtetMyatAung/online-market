@@ -37,7 +37,11 @@ export async function GET(
     });
 
     if (!category) {
-      return ApiResponseHandler.error("Category not found", 404);
+      // return ApiResponseHandler.error("Category not found", 404);
+      return NextResponse.json(
+        { message: "Category not found" },
+        { status: 404 }
+      );
     }
 
     // Calculate category level
@@ -83,10 +87,14 @@ export async function PUT(
     const validation = updateCategorySchema.safeParse(body);
 
     if (!validation.success) {
-      return ApiResponseHandler.error(
-        "Invalid request body",
-        400,
-        validation.error.message
+      // return ApiResponseHandler.error(
+      //   "Invalid request body",
+      //   400,
+      //   validation.error.message
+      // );
+      return NextResponse.json(
+        { message: validation.error.message },
+        { status: 400 }
       );
     }
 
@@ -97,11 +105,12 @@ export async function PUT(
       data: validation.data,
     });
 
-    return ApiResponseHandler.success(
-      updatedCategory,
-      "Category updated successfully",
-      200
-    );
+    // return ApiResponseHandler.success(
+    //   updatedCategory,
+    //   "Category updated successfully",
+    //   200
+    // );
+    return NextResponse.json(updatedCategory, { status: 200 });
   } catch (error) {
     console.error("Error updating category:", error);
     return ApiResponseHandler.error(
@@ -120,16 +129,20 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const deletedCategory = await prisma.category.delete({
+    await prisma.category.delete({
       where: {
         id: id,
       },
     });
 
-    return ApiResponseHandler.success(
-      deletedCategory,
-      "Category deleted successfully",
-      200
+    // return ApiResponseHandler.success(
+    //   deletedCategory,
+    //   "Category deleted successfully",
+    //   200
+    // );
+    return NextResponse.json(
+      { message: "Successfully deleted !" },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error deleting category:", error);

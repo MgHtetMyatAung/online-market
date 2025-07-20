@@ -76,10 +76,14 @@ export async function POST(request: Request) {
     const validation = createCategorySchema.safeParse(body);
 
     if (!validation.success) {
-      return ApiResponseHandler.error(
-        "Invalid request body",
-        400,
-        validation.error.message
+      // return ApiResponseHandler.error(
+      //   "Invalid request body",
+      //   400,
+      //   validation.error.message
+      // );
+      return NextResponse.json(
+        { message: "Invalid request body" },
+        { status: 400 }
       );
     }
 
@@ -92,9 +96,13 @@ export async function POST(request: Request) {
     });
 
     if (existingCategory) {
-      return ApiResponseHandler.error(
-        "Category with this slug already exists",
-        409
+      // return ApiResponseHandler.error(
+      //   "Category with this slug already exists",
+      //   409
+      // );
+      return NextResponse.json(
+        { message: "Category with this slug already exists" },
+        { status: 409 }
       );
     }
 
@@ -109,11 +117,12 @@ export async function POST(request: Request) {
       },
     });
 
-    return ApiResponseHandler.success(
-      newCategory,
-      "Category created successfully",
-      201
-    );
+    // return ApiResponseHandler.success(
+    //   newCategory,
+    //   "Category created successfully",
+    //   201
+    // );
+    return NextResponse.json(newCategory, { status: 201 });
   } catch (error) {
     console.error("Failed to create category:", error);
     return ApiResponseHandler.error(

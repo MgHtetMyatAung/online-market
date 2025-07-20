@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useGetProducts } from "@/features/product/api/queries";
 import { useGetCategoryById } from "../api/queries";
 import ProductListTableByCategory from "./ProductListTableByCategory";
+import useScrollToTop from "@/hooks/useScrollToTop";
 
 export default function ProductListByCategoryId({
   categoryId,
@@ -24,6 +25,7 @@ export default function ProductListByCategoryId({
   const { data: products, isLoading } = useGetProducts({ categoryId });
   const { data: category, isLoading: isCategoryLoading } =
     useGetCategoryById(categoryId);
+  useScrollToTop();
 
   // Get unique brands for filter
   const brands = Array.from(

@@ -18,19 +18,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { ROUTE_PATH } from "@/constants/router";
 import { useDeleteCategory } from "../api/mutations";
+import DeleteConfirmBtn from "@/components/actions/DeleteConfirmBtn";
 
 function CategoryListTable({ type }: { type: "main" | "sub" | "last" }) {
   const { data: categories, isLoading } = useGetCategories({ type });
 
-  const { mutate } = useDeleteCategory();
-
-  const handleDeleteCategory = async (id: string) => {
-    await mutate(id);
-  };
+  const { mutate, isPending, isSuccess } = useDeleteCategory();
 
   const columns = useMemo<ColumnDef<typeOfCategory>[]>(
     () => {
@@ -121,7 +118,7 @@ function CategoryListTable({ type }: { type: "main" | "sub" | "last" }) {
         enableGlobalFilter
         enablePagination
         pageSizeOptions={[5, 10, 20]} // Different page size options
-        initialPageSize={5}
+        initialPageSize={10}
         renderRowActions={(category: Category) => (
           <div className="flex gap-2">
             <DropdownMenu>
@@ -160,10 +157,16 @@ function CategoryListTable({ type }: { type: "main" | "sub" | "last" }) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600" asChild>
-                  <button onClick={() => handleDeleteCategory(category.id)}>
+                <DropdownMenuItem asChild>
+                  <DeleteConfirmBtn
+                    title="Category"
+                    targetId={category.id}
+                    onDelete={mutate}
+                    isPending={isPending}
+                    isSuccess={isSuccess}
+                  >
                     Delete category
-                  </button>
+                  </DeleteConfirmBtn>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

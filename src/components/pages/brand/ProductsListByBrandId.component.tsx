@@ -11,6 +11,7 @@ import ProductListTableByBrand from "@/features/brand/components/ProductListTabl
 import { useGetProducts } from "@/features/product/api/queries";
 import { useGetBrandById } from "@/features/brand/api/queries";
 import clsx from "clsx";
+import useScrollToTop from "@/hooks/useScrollToTop";
 
 interface ProductDetailType extends Product {
   category: {
@@ -28,6 +29,7 @@ export default function ProductsListByBrandId({ id }: { id: string }) {
   const { data: productLists, isLoading } = useGetProducts({ brandId });
   const { data: brandDetail, isLoading: isBrandLoading } =
     useGetBrandById(brandId);
+  useScrollToTop();
 
   const brand = brandDetail || ({} as Brand);
   const products =

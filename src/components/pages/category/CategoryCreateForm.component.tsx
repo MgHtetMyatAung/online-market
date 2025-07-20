@@ -32,10 +32,11 @@ import {
   FileUploaderItem,
 } from "@/components/ui/file-upload";
 import { Switch } from "@/components/ui/switch";
-import { useCategories, useCreateCategory } from "@/hooks/api/use-category";
 import { useRouter, useSearchParams } from "next/navigation";
 import SubmitBtn from "@/components/actions/SubmitBtn";
 import { useGetCategories } from "@/features/category/api/queries";
+import useScrollToTop from "@/hooks/useScrollToTop";
+import { useCreateCategory } from "@/features/category/api/mutations";
 
 const formSchema = z.object({
   category_level: z.string().optional(),
@@ -48,6 +49,7 @@ const formSchema = z.object({
 });
 
 export default function CategoryCreateForm() {
+  useScrollToTop();
   const [files, setFiles] = useState<File[] | null>(null);
   const { mutate, isPending, isSuccess } = useCreateCategory();
   const searchParams = useSearchParams();
@@ -129,8 +131,6 @@ export default function CategoryCreateForm() {
       });
     }
   }, [isSuccess]);
-
-  console.log(form.formState.errors, "errors");
 
   return (
     <div className=" p-10">
