@@ -9,7 +9,6 @@ export const useGetCategories = (params?: GetCategoriesParams) => {
   return useQuery({
     queryKey: queryKeys.categories(params),
     queryFn: () => categoryApi.getAllCategorys(params),
-    placeholderData: [], // Optional: for immediate UI
   });
 };
 

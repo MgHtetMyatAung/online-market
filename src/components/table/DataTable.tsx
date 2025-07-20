@@ -117,6 +117,8 @@ function DataListTable<TData extends TableDataItem>({
   const initialPage = Number(searchParams.get("page")) || 1;
   const initialSize = Number(searchParams.get("size")) || initialPageSize;
 
+  console.log(isLoading, "isLoading");
+
   // --- ZUSTAND INTEGRATION START ---
   const { tableColumnVisibility, setColumnVisibility } =
     useColumnVisibilityStore();
@@ -421,8 +423,22 @@ function DataListTable<TData extends TableDataItem>({
             });
           }}
           pageSizeOptions={pageSizeOptions}
-          nextPage={nextPage}
-          previousPage={previousPage}
+          nextPage={() => {
+            nextPage();
+            const newPage = pagination.pageIndex + 1; // +2 because pageIndex is 0-based and we're going forward
+            handlePaginationChange({
+              pageIndex: newPage,
+              pageSize: pagination.pageSize,
+            });
+          }}
+          previousPage={() => {
+            previousPage();
+            const newPage = pagination.pageIndex - 1; // pageIndex is already decremented by previousPage()
+            handlePaginationChange({
+              pageIndex: newPage,
+              pageSize: pagination.pageSize,
+            });
+          }}
           getCanNextPage={getCanNextPage()}
           getCanPreviousPage={getCanPreviousPage()}
           getPageCount={getPageCount()}

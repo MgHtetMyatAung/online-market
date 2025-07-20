@@ -116,7 +116,7 @@ export default function ProductsListByBrandId({ id }: { id: string }) {
 
       <div className="flex-1 space-y-4 pt-6">
         {/* Brand Header */}
-        <div className="flex items-start gap-4 py-6 px-4 lg:px-8 bg-white rounded-lg">
+        <div className="flex items-start gap-4 py-6 px-4 lg:px-8 bg-white rounded-lg shadow">
           <div className="h-16 w-16 rounded-lg border bg-background flex items-center justify-center">
             {brand.image ? (
               <Image

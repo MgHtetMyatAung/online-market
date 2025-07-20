@@ -6,6 +6,11 @@ interface typeOfProduct extends Product {
     name: string;
     slug: string;
   };
+  brand: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
 interface GetProductsParams {

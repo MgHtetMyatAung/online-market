@@ -22,7 +22,7 @@ import { typeOfProduct } from "../type";
 import { checkStock } from "./checkStock";
 
 function ProductListTable() {
-  const { data: products, isLoading, isFetching } = useGetProducts();
+  const { data: products, isLoading } = useGetProducts();
 
   console.log(products, "products");
 
@@ -106,9 +106,9 @@ function ProductListTable() {
       <DataTable
         tableId="products"
         label="Products"
-        data={products!}
+        data={products || []}
         columns={columns}
-        isLoading={isLoading || isFetching}
+        isLoading={isLoading}
         emptyMessage="No products found."
         enableGlobalFilter
         enablePagination

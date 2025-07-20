@@ -24,19 +24,13 @@ import { ROUTE_PATH } from "@/constants/router";
 import { useDeleteCategory } from "../api/mutations";
 
 function CategoryListTable({ type }: { type: "main" | "sub" | "last" }) {
-  const {
-    data: categories,
-    isLoading,
-    isFetching,
-  } = useGetCategories({ type });
+  const { data: categories, isLoading } = useGetCategories({ type });
 
   const { mutate } = useDeleteCategory();
 
   const handleDeleteCategory = async (id: string) => {
     await mutate(id);
   };
-
-  console.log(isFetching, isLoading, "loading");
 
   const columns = useMemo<ColumnDef<typeOfCategory>[]>(
     () => {
@@ -120,9 +114,9 @@ function CategoryListTable({ type }: { type: "main" | "sub" | "last" }) {
       <DataTable
         tableId={`category-${type}`}
         label="Categories"
-        data={categories!}
+        data={categories || []}
         columns={columns}
-        isLoading={isLoading || isFetching}
+        isLoading={isLoading}
         emptyMessage="No categories found."
         enableGlobalFilter
         enablePagination
@@ -153,7 +147,13 @@ function CategoryListTable({ type }: { type: "main" | "sub" | "last" }) {
                     </Link>
                   )}
                 </DropdownMenuItem>
-                <DropdownMenuItem>View details</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`${ROUTE_PATH.CATEGORY.VIEW}${category.id}/products`}
+                  >
+                    View details
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`${ROUTE_PATH.CATEGORY.EDIT}${category.id}`}>
                     Edit category

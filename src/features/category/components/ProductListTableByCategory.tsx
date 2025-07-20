@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client";
 import React, { useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import DataTable from "@/components/table/DataTable";
@@ -13,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Package, Plus } from "lucide-react";
+import { MoreHorizontal, Package } from "lucide-react";
 import Link from "next/link";
 import { ROUTE_PATH } from "@/constants/router";
 import Image from "next/image";
@@ -21,15 +20,15 @@ import { useGetProducts } from "@/features/product/api/queries";
 import { typeOfProduct } from "@/features/product/type";
 import { checkStock } from "@/lib/util/checkStock";
 import { Product } from "@prisma/client";
-import { useGetBrandById } from "../api/queries";
+import { useGetCategoryById } from "../api/queries";
 
-interface Props {
-  brandId: string;
-}
-
-function ProductListTableByBrand({ brandId }: Props) {
-  const { data: products, isLoading } = useGetProducts({ brandId });
-  const { data: brandDetail } = useGetBrandById(brandId);
+export default function ProductListTableByCategory({
+  categoryId,
+}: {
+  categoryId: string;
+}) {
+  const { data: products, isLoading } = useGetProducts({ categoryId });
+  const { data: categoryDetail } = useGetCategoryById(categoryId);
 
   const columns = useMemo<ColumnDef<typeOfProduct>[]>(
     () => [
@@ -63,6 +62,15 @@ function ProductListTableByBrand({ brandId }: Props) {
         cell: ({ row }) => (
           <span className="text-gray-700">
             {String(row.original.category.name)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "brand",
+        header: "Brand",
+        cell: ({ row }) => (
+          <span className="text-gray-700">
+            {String(row.original.brand.name)}
           </span>
         ),
       },
@@ -106,7 +114,7 @@ function ProductListTableByBrand({ brandId }: Props) {
   );
 
   return (
-    <div className="py-4">
+    <div className="">
       <DataTable
         tableId="products"
         label="Products"
@@ -150,7 +158,7 @@ function ProductListTableByBrand({ brandId }: Props) {
             <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No products found</h3>
             <p className="text-muted-foreground mb-4">
-              {`${brandDetail?.name} doesn't have any products yet.`}{" "}
+              {`${categoryDetail?.name} doesn't have any products yet.`}{" "}
               <span> Add First Product</span>
             </p>
             {/* <Button asChild>
@@ -165,5 +173,3 @@ function ProductListTableByBrand({ brandId }: Props) {
     </div>
   );
 }
-
-export default ProductListTableByBrand;

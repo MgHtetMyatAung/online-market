@@ -93,7 +93,7 @@ function BrandListTable() {
       <DataTable
         tableId="brand"
         label="Brands"
-        data={brands!}
+        data={brands || []}
         columns={columns}
         isLoading={isLoading}
         emptyMessage="No products found."

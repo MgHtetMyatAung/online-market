@@ -31,6 +31,7 @@ export const ROUTE_PATH = {
     LIST: "/dashboard/category",
     CREATE: "/dashboard/category/create",
     EDIT: "/dashboard/category/edit/",
+    VIEW: "/dashboard/category/",
   },
 
   ORDER: {

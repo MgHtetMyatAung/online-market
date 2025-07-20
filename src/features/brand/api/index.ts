@@ -18,6 +18,7 @@ export const brandApi = {
     category?: string;
     search?: string;
   }): Promise<typeOfBrand[]> => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const response = await api.get<typeOfBrand[]>(API_BASE_PATH, { params });
     return response.data;
   },

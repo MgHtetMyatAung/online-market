@@ -9,7 +9,7 @@ export const useGetProducts = (params?: GetProductsParams) => {
   return useQuery({
     queryKey: queryKeys.products(params),
     queryFn: () => productApi.getAllProducts(params),
-    placeholderData: [], // Optional: for immediate UI
+    // placeholderData: [], // Optional: for immediate UI
   });
 };
 

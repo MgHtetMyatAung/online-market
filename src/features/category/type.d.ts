@@ -12,6 +12,7 @@ interface typeOfCategory extends Category {
   _count: {
     products: number;
   };
+  level: number;
 }
 
 interface GetCategoriesParams {

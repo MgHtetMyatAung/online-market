@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApiResponseHandler } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // Schema for updating a category
@@ -25,8 +27,12 @@ export async function GET(
         id: id,
       },
       include: {
-        children: true, // Include subcategories
-        parent: true, // Include parent category
+        children: true,
+        parent: {
+          include: {
+            parent: true, // Include grandparent to calculate level
+          },
+        },
       },
     });
 
@@ -34,11 +40,27 @@ export async function GET(
       return ApiResponseHandler.error("Category not found", 404);
     }
 
-    return ApiResponseHandler.success(
-      category,
-      "Category fetched successfully",
-      200
-    );
+    // Calculate category level
+    let level = 0; // Start at level 1
+    let currentCategory = category;
+
+    while (currentCategory.parent) {
+      level++;
+      currentCategory = currentCategory.parent as typeof category;
+    }
+
+    // Add level to the response
+    const categoryWithLevel = {
+      ...category,
+      level,
+    };
+
+    // return ApiResponseHandler.success(
+    //   category,
+    //   "Category fetched successfully",
+    //   200
+    // );
+    return NextResponse.json(categoryWithLevel, { status: 200 });
   } catch (error) {
     console.error("Error fetching category:", error);
     return ApiResponseHandler.error(

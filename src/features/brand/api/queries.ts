@@ -9,9 +9,9 @@ export const useGetBrands = (params?: {
   search?: string;
 }) => {
   return useQuery({
-    queryKey: queryKeys.brands(params),
+    queryKey: queryKeys.brands(),
     queryFn: () => brandApi.getAllBrands(params),
-    placeholderData: [], // Optional: for immediate UI
+    // placeholderData: [], // Optional: for immediate UI
   });
 };
 
