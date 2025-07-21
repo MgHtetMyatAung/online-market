@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { categoryApi } from ".";
@@ -13,6 +14,7 @@ interface CategoryPayload {
   slug: string;
   isActive?: boolean;
   parentId?: string | null;
+  level: "main" | "sub" | "last";
 }
 
 export const useCreateCategory = () => {
@@ -49,6 +51,129 @@ export const useCreateCategory = () => {
         toast.error("Failed to create category");
       }
       // Handle error (e.g., show toast notification)
+    },
+  });
+};
+
+export const useUpdateCategory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<Omit<CategoryPayload, "id">>;
+    }) =>
+      categoryApi.updateCategory(id, {
+        name: data.name ?? "",
+        slug: data.slug ?? "",
+        description: data.description,
+        image: data.image,
+        isActive: data.isActive,
+        parentId: data.parentId,
+      }),
+
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches for all category levels
+      await queryClient.cancelQueries({ queryKey: ["categories"] });
+      await queryClient.cancelQueries({ queryKey: queryKeys.category(id) });
+
+      // Snapshot the previous values for all category queries
+      const previousMainCategories = queryClient.getQueryData(
+        queryKeys.categories({ type: "main" })
+      );
+      const previousSubCategories = queryClient.getQueryData(
+        queryKeys.categories({ type: "sub" })
+      );
+      const previousLastCategories = queryClient.getQueryData(
+        queryKeys.categories({ type: "last" })
+      );
+      const previousCategory = queryClient.getQueryData(queryKeys.category(id));
+
+      // Update cache for all category levels
+      const updateCategoryInList = (old: typeOfCategory[] = []) => {
+        return old.map((category) =>
+          category.id === id ? { ...category, ...data } : category
+        );
+      };
+
+      if (previousMainCategories) {
+        queryClient.setQueryData(
+          queryKeys.categories({ type: "main" }),
+          updateCategoryInList
+        );
+      }
+
+      if (previousSubCategories) {
+        queryClient.setQueryData(
+          queryKeys.categories({ type: "sub" }),
+          updateCategoryInList
+        );
+      }
+
+      if (previousLastCategories) {
+        queryClient.setQueryData(
+          queryKeys.categories({ type: "last" }),
+          updateCategoryInList
+        );
+      }
+
+      if (previousCategory) {
+        queryClient.setQueryData(
+          queryKeys.category(id),
+          (old: typeOfCategory) => ({
+            ...old,
+            ...data,
+          })
+        );
+      }
+
+      return {
+        previousMainCategories,
+        previousSubCategories,
+        previousLastCategories,
+        previousCategory,
+      };
+    },
+
+    onError: (_error, { id }, context) => {
+      // Rollback all category level caches
+      if (context?.previousMainCategories) {
+        queryClient.setQueryData(
+          queryKeys.categories({ type: "main" }),
+          context.previousMainCategories
+        );
+      }
+      if (context?.previousSubCategories) {
+        queryClient.setQueryData(
+          queryKeys.categories({ type: "sub" }),
+          context.previousSubCategories
+        );
+      }
+      if (context?.previousLastCategories) {
+        queryClient.setQueryData(
+          queryKeys.categories({ type: "last" }),
+          context.previousLastCategories
+        );
+      }
+      if (context?.previousCategory) {
+        queryClient.setQueryData(
+          queryKeys.category(id),
+          context.previousCategory
+        );
+      }
+      toast.error("Failed to update category");
+    },
+
+    onSuccess: (_data, { id }) => {
+      toast.success("Category updated successfully");
+    },
+
+    onSettled: (_data, _error, { id }) => {
+      // Invalidate all category queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.category(id) });
     },
   });
 };

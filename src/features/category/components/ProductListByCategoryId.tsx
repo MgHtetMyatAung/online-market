@@ -16,6 +16,7 @@ import { useGetProducts } from "@/features/product/api/queries";
 import { useGetCategoryById } from "../api/queries";
 import ProductListTableByCategory from "./ProductListTableByCategory";
 import useScrollToTop from "@/hooks/useScrollToTop";
+import clsx from "clsx";
 
 export default function ProductListByCategoryId({
   categoryId,
@@ -125,8 +126,12 @@ export default function ProductListByCategoryId({
                   {getCategoryLevelLabel(category.level)}
                 </Badge>
                 <Badge
-                  variant={category.isActive ? "default" : "secondary"}
-                  className="w-fit"
+                  className={clsx({
+                    "bg-green-100 text-green-800 hover:bg-green-100 hover:text-green-800":
+                      category.isActive,
+                    "bg-red-100 text-red-800 hover:bg-red-100 hover:text-red-800":
+                      !category.isActive,
+                  })}
                 >
                   {category.isActive ? "Active" : "Inactive"}
                 </Badge>

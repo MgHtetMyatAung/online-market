@@ -67,7 +67,7 @@ export default function DeleteConfirmBtn({
             {isPending ? (
               <LoaderCircle size={18} className=" animate-spin" />
             ) : (
-              title || "Submit"
+              "Delete"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
