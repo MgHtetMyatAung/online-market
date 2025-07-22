@@ -1,6 +1,7 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./sidebar/AppSideBar";
 import DashboardMenu from "./menu/DashboardMenu";
+import BrandMark from "./BrandMark";
 
 export default function DashboardLayout({
   children,
@@ -15,6 +16,7 @@ export default function DashboardLayout({
         <div className=" p-5 w-full h-full">
           <div className="">{children}</div>
         </div>
+        <BrandMark />
       </main>
     </SidebarProvider>
   );

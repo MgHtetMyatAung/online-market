@@ -21,7 +21,7 @@ export default function SecondLevelMenu({ items }: { items: any }) {
     return (
       <SidebarMenuSubItem>
         <SidebarMenuSubButton asChild className=" py-5">
-          <Link href={items.url}>
+          <Link href={items.url} className=" text-gray-400 hover:text-gray-100">
             <span>{items.title}</span>
           </Link>
         </SidebarMenuSubButton>
@@ -37,8 +37,8 @@ export default function SecondLevelMenu({ items }: { items: any }) {
       >
         <SidebarMenuSubItem>
           <CollapsibleTrigger asChild>
-            <SidebarMenuSubButton className="py-5">
-              <span>{items.title}</span>
+            <SidebarMenuSubButton className="py-5 ">
+              <span className="text-gray-400">{items.title}</span>
               <ChevronRight
                 className={cn(
                   "ml-auto transition-transform duration-200 group-data-[state=open]/collapsibletwo:rotate-90"
@@ -51,7 +51,7 @@ export default function SecondLevelMenu({ items }: { items: any }) {
               {items.items?.map((subItem: any) => (
                 <SidebarMenuSubItem key={subItem.title}>
                   <SidebarMenuSubButton asChild className=" py-5">
-                    <Link href={subItem.url}>
+                    <Link href={subItem.url} className="text-gray-400">
                       <span>{subItem.title}</span>
                     </Link>
                   </SidebarMenuSubButton>

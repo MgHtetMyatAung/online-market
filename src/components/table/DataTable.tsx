@@ -38,6 +38,8 @@ import { Input } from "../ui/input";
 import { PaginationUi } from "../common/PaginationUi";
 import { useColumnVisibilityStore } from "@/store/columnVisibilityStore";
 import { useRouter, useSearchParams } from "next/navigation";
+import useCheckHydration from "@/hooks/useCheckHydration";
+import { Skeleton } from "../ui/skeleton";
 
 // Define a generic type for your table data
 type TableDataItem = Record<string, any>;
@@ -117,17 +119,19 @@ function DataListTable<TData extends TableDataItem>({
   const initialPage = Number(searchParams.get("page")) || 1;
   const initialSize = Number(searchParams.get("size")) || initialPageSize;
 
-  console.log(isLoading, "isLoading");
+  const { isHydrated } = useCheckHydration();
 
   // --- ZUSTAND INTEGRATION START ---
   const { tableColumnVisibility, setColumnVisibility } =
     useColumnVisibilityStore();
   // Get initial visibility from the store, or default to an empty object
-  const initialVisibility = tableColumnVisibility[tableId] || {};
+  const initialVisibility = isHydrated
+    ? tableColumnVisibility[tableId] || {}
+    : {};
 
   const [columnVisibility, setInternalColumnVisibility] =
     useState<VisibilityState>(
-      initialColumnVisibility || initialVisibility || {}
+      initialVisibility || initialColumnVisibility || {}
     );
 
   // Update URL when pagination changes
@@ -145,8 +149,27 @@ function DataListTable<TData extends TableDataItem>({
   };
 
   useEffect(() => {
-    setColumnVisibility(tableId, columnVisibility);
-  }, [columnVisibility, tableId, setColumnVisibility]);
+    if (isHydrated) {
+      setColumnVisibility(tableId, columnVisibility);
+    }
+  }, [columnVisibility, tableId, setColumnVisibility, isHydrated]);
+
+  useEffect(() => {
+    // console.log(
+    //   "DataListTable: Zustand store's tableColumnVisibility changed:",
+    //   tableColumnVisibility[tableId]
+    // );
+    if (
+      Object.keys(tableColumnVisibility[tableId] || {}).length > 0 &&
+      JSON.stringify(tableColumnVisibility[tableId]) !==
+        JSON.stringify(columnVisibility)
+    ) {
+      // console.log(
+      //   "DataListTable: Updating internal state from rehydrated store."
+      // );
+      setInternalColumnVisibility(tableColumnVisibility[tableId]);
+    }
+  }, [tableColumnVisibility, tableId, setInternalColumnVisibility]);
 
   // Memoize columns to prevent unnecessary re-renders of the table instance
   const memoizedColumns = useMemo(() => {
@@ -233,6 +256,10 @@ function DataListTable<TData extends TableDataItem>({
   } = table;
 
   const { pagination } = getState();
+
+  if (!isHydrated) {
+    return <Skeleton className=" w-full min-h-[35vh]" />;
+  }
 
   return (
     <div className="rounded-lg shadow overflow-hidden border border-gray-200">

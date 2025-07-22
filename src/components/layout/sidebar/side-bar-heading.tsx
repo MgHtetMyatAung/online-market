@@ -15,7 +15,7 @@ export default function SideBarHeading({ title }: { title: string }) {
         className=" w-6 h-6"
       />
       {(open || isMobile) && (
-        <h3 className=" text-lg font-bold text-nowrap text-secondary-blue overflow-hidden">
+        <h3 className=" text-gray-50 text-lg font-bold text-nowrap text-secondary-blue overflow-hidden">
           {title}
         </h3>
       )}

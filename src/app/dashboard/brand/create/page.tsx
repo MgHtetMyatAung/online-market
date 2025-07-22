@@ -31,6 +31,7 @@ const formSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   description: z.string().optional(),
+  url: z.string().optional(),
   image: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -72,7 +73,13 @@ export default function BrandCreatePage() {
 
   useEffect(() => {
     if (isSuccess) {
-      form.reset({ name: "", slug: "", description: "", isActive: true });
+      form.reset({
+        name: "",
+        slug: "",
+        description: "",
+        url: "",
+        isActive: true,
+      });
     }
   }, [isSuccess]);
 
@@ -119,11 +126,13 @@ export default function BrandCreatePage() {
                       />
                     </FormControl>
 
-                    <FormMessage />
+                    {/* <FormMessage /> */}
                   </FormItem>
                 )}
               />
-
+              <span className=" text-sm text-muted-foreground">
+                This will be used in the URL. Auto-generated from name.
+              </span>
               <FormField
                 control={form.control}
                 name="description"
@@ -139,6 +148,24 @@ export default function BrandCreatePage() {
                     </FormControl>
 
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://example.com"
+                        type="text"
+                        className=" bg-white"
+                        {...field}
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />

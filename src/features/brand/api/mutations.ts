@@ -11,6 +11,7 @@ const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   slug: z.string().min(1, { message: "Slug is required" }),
   description: z.string().optional(),
+  url: z.string().optional(),
   image: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -24,6 +25,7 @@ export const useCreateBrand = () => {
         slug: newBrand.slug,
         image: newBrand.image || undefined,
         description: newBrand.description || undefined,
+        url: newBrand.url || undefined,
         isActive: newBrand.isActive,
       }),
     onSuccess: () => {
@@ -58,6 +60,7 @@ export const useUpdateBrand = () => {
         name: data.name ?? "",
         slug: data.slug ?? "",
         description: data.description,
+        url: data.url,
         image: data.image,
         isActive: data.isActive,
       }),

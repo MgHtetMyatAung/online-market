@@ -69,11 +69,11 @@
 }
 
 .scroll-bar-fit::-webkit-scrollbar {
-  width: 3px;
+  width: 4px;
 }
 
 .scroll-bar-fit::-webkit-scrollbar-thumb {
-  background: #d5d6d8;
+  background: #b0b1b1;
 }
 
 body::-webkit-scrollbar {

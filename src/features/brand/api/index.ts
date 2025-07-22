@@ -9,6 +9,7 @@ const formSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   description: z.string().optional(),
+  url: z.string().optional(), // Add the 'url' field with optional string type
   image: z.string().optional(),
   isActive: z.boolean().optional(),
 });

@@ -64,6 +64,25 @@ function BrandListTable() {
         ),
       },
       {
+        accessorKey: "url",
+        header: "Url",
+        cell: (info) => (
+          <>
+            {info.getValue() ? (
+              <Link
+                href={String(info.getValue())}
+                target="_blank"
+                className=" text-gray-700 hover:underline hover:text-blue-400"
+              >
+                {String(info.getValue())}
+              </Link>
+            ) : (
+              ""
+            )}
+          </>
+        ),
+      },
+      {
         accessorKey: "product",
         header: "Products",
         cell: ({ row }) => `${Number(row.original._count.products)}`,
@@ -105,7 +124,7 @@ function BrandListTable() {
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
+                <Button variant="ghost" className="h-8 w-8 p-0" title="actions">
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>

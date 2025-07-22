@@ -19,13 +19,15 @@ import TopLevelMenu from "./top-level-menu";
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon" className=" bg-white">
-      <SidebarHeader className=" bg-white">
+    <Sidebar collapsible="icon" className=" bg-[#202B46]">
+      <SidebarHeader className=" bg-[#202B46]">
         <SideBarHeading title="Online Market" />
       </SidebarHeader>
-      <SidebarContent className=" scroll-bar-fit gap-0 bg-white">
+      <SidebarContent className=" scroll-bar-fit gap-0 bg-[#202B46]">
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel className=" text-gray-500">
+            Application
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className=" gap-0">
               {applicationMenuItems.map((item) => (
@@ -35,7 +37,9 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Control</SidebarGroupLabel>
+          <SidebarGroupLabel className=" text-gray-500">
+            Control
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className=" gap-0">
               {controlMenuItems.map((item) => (
@@ -45,7 +49,9 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Support</SidebarGroupLabel>
+          <SidebarGroupLabel className=" text-gray-500">
+            Support
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className=" gap-0">
               {supportMenuItems.map((item) => (
@@ -55,7 +61,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className=" bg-white" />
+      <SidebarFooter className=" bg-[#202B46]" />
     </Sidebar>
   );
 }

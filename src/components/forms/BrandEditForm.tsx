@@ -34,6 +34,7 @@ const formSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
   description: z.string().optional(),
+  url: z.string().optional(),
   image: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -69,6 +70,7 @@ export default function BrandEditForm({ id }: { id: string }) {
       form.setValue("name", brandDetail.name);
       form.setValue("slug", brandDetail.slug);
       form.setValue("description", brandDetail.description || "");
+      form.setValue("url", brandDetail.url || "");
       form.setValue("image", brandDetail.image || "");
       form.setValue("isActive", brandDetail.isActive || false);
     }
@@ -134,11 +136,13 @@ export default function BrandEditForm({ id }: { id: string }) {
                       />
                     </FormControl>
 
-                    <FormMessage />
+                    {/* <FormMessage /> */}
                   </FormItem>
                 )}
               />
-
+              <span className=" text-sm text-muted-foreground">
+                This will be used in the URL. Auto-generated from name.
+              </span>
               <FormField
                 control={form.control}
                 name="description"
@@ -157,7 +161,23 @@ export default function BrandEditForm({ id }: { id: string }) {
                   </FormItem>
                 )}
               />
-
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://example.com"
+                        type="text"
+                        className=" bg-white"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="isActive"
