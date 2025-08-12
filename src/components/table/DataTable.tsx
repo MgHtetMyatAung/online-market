@@ -155,18 +155,11 @@ function DataListTable<TData extends TableDataItem>({
   }, [columnVisibility, tableId, setColumnVisibility, isHydrated]);
 
   useEffect(() => {
-    // console.log(
-    //   "DataListTable: Zustand store's tableColumnVisibility changed:",
-    //   tableColumnVisibility[tableId]
-    // );
     if (
       Object.keys(tableColumnVisibility[tableId] || {}).length > 0 &&
       JSON.stringify(tableColumnVisibility[tableId]) !==
         JSON.stringify(columnVisibility)
     ) {
-      // console.log(
-      //   "DataListTable: Updating internal state from rehydrated store."
-      // );
       setInternalColumnVisibility(tableColumnVisibility[tableId]);
     }
   }, [tableColumnVisibility, tableId, setInternalColumnVisibility]);

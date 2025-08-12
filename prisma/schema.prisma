@@ -1,4 +1,5 @@
 // prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,12 +9,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums for roles, order status, promotion types, address types
+// ==============================
+// 1. Enums
+// ==============================
 enum UserRole {
-  GUEST // Not stored in DB, but conceptual for public access
-  USER // Standard customer
-  ADMIN // Full control
-  // Add other roles like STAFF, MODERATOR if needed later
+  GUEST
+  USER
+  ADMIN
 }
 
 enum OrderStatus {
@@ -26,10 +28,10 @@ enum OrderStatus {
 }
 
 enum PromotionType {
-  PERCENTAGE_DISCOUNT // e.g., 10% off
-  FIXED_AMOUNT_DISCOUNT // e.g., $10 off
-  CASHBACK // e.g., $5 cashback
-  BUY_X_GET_Y // e.g., Buy 2 get 1 free
+  PERCENTAGE_DISCOUNT
+  FIXED_AMOUNT_DISCOUNT
+  CASHBACK
+  BUY_X_GET_Y
   FREE_SHIPPING
 }
 
@@ -45,16 +47,26 @@ enum UserLevelType {
   Diamond
 }
 
-// User Model (Updated with Loyalty Points and Active Status)
-model User {
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// ==============================
+// 2. Customer & Address Management
+// ==============================
+// The User model has been renamed to Customer for clarity.
+// It serves as the main entity for customer authentication and data.
+model Customer {
   id            String        @id @default(uuid())
   email         String        @unique
   name          String
   phone         String?
   password      String
   role          UserRole      @default(USER)
-  isActive      Boolean       @default(true) // For banning/inactivating users
-  loyaltyPoints Int           @default(0) // Total loyalty points
+  isActive      Boolean       @default(true)
+  loyaltyPoints Int           @default(0)
   level         UserLevelType @default(BRONZE)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -63,30 +75,72 @@ model User {
   addresses    Address[]
   carts        Cart[]
   userRequests UserRequest[]
-  // Add relations for reviews, wishlists etc. later
+  blogPosts    Blog[]
 }
 
-// Product Management
+model Address {
+  id         String      @id @default(uuid())
+  customerId String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  street     String
+  city       String
+  state      String?
+  zip        String
+  country    String
+  type       AddressType
+  isDefault  Boolean     @default(false)
+
+  shippingOrders Order[]  @relation("ShippingAddress")
+  billingOrders  Order[]  @relation("BillingAddress")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model UserRequest {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  subject    String
+  message    String
+  status     String   @default("OPEN")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ==============================
+// 3. Product & Catalog Management
+// ==============================
+model Attribute {
+  id     String           @id @default(uuid())
+  name   String           @unique
+  values AttributeValue[]
+}
+
+model AttributeValue {
+  id                String                  @id @default(uuid())
+  value             String
+  attributeId       String
+  attribute         Attribute               @relation(fields: [attributeId], references: [id])
+  variantAttributes VariantAttributeValue[]
+
+  @@unique([attributeId, value])
+}
+
 model Category {
-  id          String  @id @default(uuid())
+  id          String     @id @default(uuid())
   name        String
   description String?
   image       String?
-  slug        String  @unique // Slug for this specific category (e.g., 'mobile', 'mango', 'lenovo')
-  isActive    Boolean @default(true)
+  slug        String     @unique
+  isActive    Boolean    @default(true)
+  parentId    String?
+  parent      Category?  @relation("SubCategories", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Category[] @relation("SubCategories")
+  products    Product[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
-  // New fields for nesting
-  parentId String? // ID of the parent category, null for top-level categories
-  parent   Category? @relation("SubCategories", fields: [parentId], references: [id], onDelete: Cascade) // Parent relation
-
-  children Category[] @relation("SubCategories") // Inverse relation for children
-
-  products Product[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([name, parentId]) // Ensures unique category names under the same parent
+  @@unique([name, parentId])
 }
 
 model Brand {
@@ -98,9 +152,8 @@ model Brand {
   slug        String    @unique
   isActive    Boolean   @default(true)
   products    Product[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Product {
@@ -111,13 +164,11 @@ model Product {
   howToUse      String?
   youtubeVideo  String?
   specification String?
-  price         Float
-  // Use a field for images, e.g., a JSON array of URLs or a separate Image model
+  basePrice     Decimal  @db.Decimal(10, 2)
   imageUrls     String[]
-  stock         Int      @default(0)
   isFeatured    Boolean  @default(false)
-  isActive      Boolean  @default(true) // For product visibility
-  instock       Boolean  @default(true)
+  isActive      Boolean  @default(true)
+  isDeleted     Boolean  @default(false)
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -125,163 +176,153 @@ model Product {
   brandId String?
   brand   Brand?  @relation(fields: [brandId], references: [id], onDelete: Cascade)
 
-  // UPDATED: promotionId is now nullable and NOT unique
   promotionId String?
-  promotion   Promotion? @relation(fields: [promotionId], references: [id]) // A Product belongs to ONE Promotion (or none)
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
 
-  variants   ProductVariant[]
-  orderItems OrderItem[]
-  cartItems  CartItem[]
-  // reviews      Review[] // Future: User reviews
-  // wishlists    Wishlist[] // Future: User wishlists
+  variants ProductVariant[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model ProductVariant {
-  id           String  @id @default(uuid())
-  productId    String
-  product      Product @relation(fields: [productId], references: [id])
-  name         String // e.g., "Size", "Color"
-  value        String // e.g., "M", "Red"
-  variantStock Int     @default(0) // Stock for this specific variant
-
-  // ADD THIS LINE:
-  orderItems OrderItem[] // This is the inverse relation field
-
-  // You also have a relation to CartItem, so add that too
-  cartItems CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-// Promotion Management
-model Promotion {
-  id             String        @id @default(uuid())
-  name           String
-  description    String?
-  type           PromotionType
-  value          Float
-  minOrderAmount Float?
-  startDate      DateTime
-  endDate        DateTime
-  isActive       Boolean       @default(true)
-
-  requiredQuantity Int?
-  freeQuantity     Int?
-
-  minLoyaltyPoints Int?
-
-  couponCode String? @unique
-
-  // NEW: A Promotion can be applied to MANY Products
-  products Product[] // Inverse relation: This promotion applies to these products
+  id         String                  @id @default(uuid())
+  productId  String
+  product    Product                 @relation(fields: [productId], references: [id])
+  sku        String                  @unique
+  price      Decimal                 @db.Decimal(10, 2)
+  stock      Int                     @default(0)
+  attributes VariantAttributeValue[]
+  orderItems OrderItem[]
+  cartItems  CartItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// Collection (e.g., "Summer Sale", "New Arrivals")
+model VariantAttributeValue {
+  id               String         @id @default(uuid())
+  variantId        String
+  variant          ProductVariant @relation(fields: [variantId], references: [id])
+  attributeValueId String
+  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id])
+
+  @@unique([variantId, attributeValueId])
+}
+
+model Promotion {
+  id               String        @id @default(uuid())
+  name             String
+  description      String?
+  type             PromotionType
+  value            Decimal       @db.Decimal(10, 2)
+  minOrderAmount   Decimal?      @db.Decimal(10, 2)
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean       @default(true)
+  minLoyaltyPoints Int?
+  couponCode       String?       @unique
+  products         Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Collection {
   id          String   @id @default(uuid())
   name        String   @unique
   slug        String   @unique
   description String?
   isActive    Boolean  @default(true)
-  productIds  String[] @default([]) // IDs of products in this collection
+  productIds  String[] @default([])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-// Order Management
+// ==============================
+// 4. Order Management
+// ==============================
 model Order {
   id                String      @id @default(uuid())
-  userId            String
-  user              User        @relation(fields: [userId], references: [id])
-  totalAmount       Float
+  customerId        String
+  customer          Customer    @relation(fields: [customerId], references: [id])
+  subtotal          Decimal     @db.Decimal(10, 2)
+  totalAmount       Decimal     @db.Decimal(10, 2)
+  loyaltyPointsUsed Int         @default(0)
+  loyaltyDiscount   Decimal     @default(0.0) @db.Decimal(10, 2)
+  appliedCouponCode String?
+  promotionDiscount Decimal?    @db.Decimal(10, 2)
   status            OrderStatus @default(PENDING)
   orderDate         DateTime    @default(now())
   shippingAddressId String
   shippingAddress   Address     @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
   billingAddressId  String
   billingAddress    Address     @relation("BillingAddress", fields: [billingAddressId], references: [id])
-  paymentStatus     String      @default("PENDING") // e.g., "PENDING", "PAID", "FAILED"
-  transactionId     String? // From payment gateway
-
-  items     OrderItem[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  paymentStatus     String      @default("PENDING")
+  transactionId     String?
+  items             OrderItem[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 model OrderItem {
-  id           String          @id @default(uuid())
-  orderId      String
-  order        Order           @relation(fields: [orderId], references: [id])
-  productId    String
-  product      Product         @relation(fields: [productId], references: [id])
-  variantId    String? // If a specific variant was ordered
-  // You need to explicitly name the relation if there are multiple relations between two models,
-  // but in this case, a single direct relation is fine as long as `ProductVariant` has its side.
-  variant      ProductVariant? @relation(fields: [variantId], references: [id])
-  quantity     Int
-  priceAtOrder Float // Price at the time of order
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id               String          @id @default(uuid())
+  orderId          String
+  order            Order           @relation(fields: [orderId], references: [id])
+  productVariantId String?
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+
+  productName       String
+  variantSku        String?
+  variantAttributes Json?
+
+  // Snapshots of the promotion applied to this item
+  promotionName           String?
+  promotionType           PromotionType?
+  promotionValue          Decimal?       @db.Decimal(10, 2)
+  promotionDiscountAmount Decimal?       @db.Decimal(10, 2)
+
+  quantity        Int
+  priceAtPurchase Decimal  @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
-model Address {
-  id        String      @id @default(uuid())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id])
-  street    String
-  city      String
-  state     String?
-  zip       String
-  country   String
-  type      AddressType // Shipping or Billing
-  isDefault Boolean     @default(false)
-
-  // Relations for Orders
-  shippingOrders Order[]  @relation("ShippingAddress")
-  billingOrders  Order[]  @relation("BillingAddress")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
-// Shopping Cart (persistent for logged-in users, or can use session storage for guests)
+// ==============================
+// 5. Shopping Cart
+// ==============================
 model Cart {
-  id        String     @id @default(uuid())
-  userId    String?    @unique // Nullable for guest carts if storing, otherwise use sessions
-  user      User?      @relation(fields: [userId], references: [id])
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  items     CartItem[]
+  id         String     @id @default(uuid())
+  customerId String?    @unique
+  customer   Customer?  @relation(fields: [customerId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  items      CartItem[]
 }
 
 model CartItem {
-  id        String          @id @default(uuid())
-  cartId    String
-  cart      Cart            @relation(fields: [cartId], references: [id])
-  productId String
-  product   Product         @relation(fields: [productId], references: [id])
-  variantId String? // If a specific variant
-  // You need to explicitly name the relation if there are multiple relations between two models,
-  // but in this case, a single direct relation is fine as long as `ProductVariant` has its side.
-  variant   ProductVariant? @relation(fields: [variantId], references: [id])
-  quantity  Int
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id               String          @id @default(uuid())
+  cartId           String
+  cart             Cart            @relation(fields: [cartId], references: [id])
+  productVariantId String?
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  promotionId      String?
+  quantity         Int
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 }
 
-// Content Management (Banners, Announcements)
+// ==============================
+// 6. Content Management & Other
+// ==============================
 model Banner {
   id        String   @id @default(uuid())
   title     String
   imageUrl  String
   linkUrl   String?
+  keyName   String?  @unique
   isActive  Boolean  @default(true)
-  priority  Int      @default(0) // For sorting
+  priority  Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -297,22 +338,29 @@ model Announcement {
   updatedAt   DateTime  @updatedAt
 }
 
-// User Requests/Support
-model UserRequest {
+model Blog {
+  id          String     @id @default(uuid())
+  title       String
+  slug        String     @unique
+  content     String
+  authorId    String
+  author      Customer   @relation(fields: [authorId], references: [id])
+  status      BlogStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model ExtraMeta {
   id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  subject   String
-  message   String
-  status    String   @default("OPEN") // e.g., OPEN, IN_PROGRESS, CLOSED
+  keyName   String   @unique
+  content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// Loyalty Settings (A single row table for global settings)
 model LoyaltySetting {
-  id                      String @id @default(uuid())
-  pointsPerDollar         Float  @default(1.0) // How many points per dollar spent
-  minOrderAmountForPoints Float  @default(0.0) // Min order value to earn points
-  // Could add tiers for user levels based on total spending or points
+  id                      String  @id @default(uuid())
+  pointsPerDollar         Decimal @db.Decimal(10, 2)
+  minOrderAmountForPoints Decimal @db.Decimal(10, 2)
 }
