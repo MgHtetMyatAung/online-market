@@ -8,9 +8,9 @@ export const ROUTE_PATH = {
 
   // blog
   BLOG: {
-    LIST: "/dashboard/blogs",
-    CREATE: "/dashboard/blogs/create",
-    EDIT: "/dashboard/blogs/edit/",
+    LIST: "/dashboard/blog",
+    CREATE: "/dashboard/blog/create",
+    EDIT: "/dashboard/blog/edit/",
   },
 
   BRAND: {
@@ -27,11 +27,32 @@ export const ROUTE_PATH = {
     VIEW: "/dashboard/product/view/",
   },
 
+  ATTRIBUTE: {
+    LIST: "/dashboard/attribute",
+    // CREATE: "/dashboard/product/create",
+    // EDIT: "/dashboard/product/edit/",
+    // VIEW: "/dashboard/product/view/",
+  },
+
   CATEGORY: {
     LIST: "/dashboard/category",
     CREATE: "/dashboard/category/create",
     EDIT: "/dashboard/category/edit/",
     VIEW: "/dashboard/category/",
+  },
+
+  COLLECTION: {
+    LIST: "/dashboard/collection",
+    // CREATE: "/dashboard/category/create",
+    // EDIT: "/dashboard/category/edit/",
+    VIEW: "/dashboard/collection/",
+  },
+
+  PROMOTION: {
+    LIST: "/dashboard/promotion",
+    // CREATE: "/dashboard/category/create",
+    // EDIT: "/dashboard/category/edit/",
+    VIEW: "/dashboard/promotion/",
   },
 
   ORDER: {

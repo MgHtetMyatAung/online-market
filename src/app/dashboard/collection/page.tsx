@@ -1,10 +1,8 @@
-// import OrderListTable from "@/features/order/components/OrderListTable";
-import { OrdersManagement } from "@/features/order/components/orders-management";
+import CollectionsManagement from "@/features/collection/components/collections-management";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
-export default function OrderPage() {
+export default function CollectionsPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
@@ -18,7 +16,7 @@ export default function OrderPage() {
           </Link>
         </div>
 
-        <OrdersManagement />
+        <CollectionsManagement />
       </div>
     </div>
   );

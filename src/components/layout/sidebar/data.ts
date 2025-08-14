@@ -87,14 +87,14 @@ export const controlMenuItems = [
         title: "List",
         url: ROUTE_PATH.CUSTOMER.LIST,
       },
-      {
-        title: "Create",
-        url: ROUTE_PATH.CUSTOMER.CREATE,
-      },
-      {
-        title: "View",
-        url: ROUTE_PATH.CUSTOMER.VIEW,
-      },
+      // {
+      //   title: "Create",
+      //   url: ROUTE_PATH.CUSTOMER.CREATE,
+      // },
+      // {
+      //   title: "View",
+      //   url: ROUTE_PATH.CUSTOMER.VIEW,
+      // },
     ],
   },
   {
@@ -106,10 +106,10 @@ export const controlMenuItems = [
         title: "List",
         url: ROUTE_PATH.ORDER.LIST,
       },
-      {
-        title: "Create",
-        url: ROUTE_PATH.HOME.EDIT,
-      },
+      // {
+      //   title: "Create",
+      //   url: ROUTE_PATH.HOME.EDIT,
+      // },
     ],
   },
   {
@@ -124,6 +124,17 @@ export const controlMenuItems = [
       {
         title: "Create",
         url: ROUTE_PATH.PRODUCT.CREATE,
+      },
+    ],
+  },
+  {
+    title: "Attributes",
+    url: "#",
+    icon: PackageSearch,
+    items: [
+      {
+        title: "List",
+        url: ROUTE_PATH.ATTRIBUTE.LIST,
       },
     ],
   },
@@ -165,12 +176,12 @@ export const controlMenuItems = [
     items: [
       {
         title: "List",
-        url: ROUTE_PATH.ABOUTUSBANNER.EDIT,
+        url: ROUTE_PATH.COLLECTION.LIST,
       },
-      {
-        title: "Create",
-        url: ROUTE_PATH.AboutusMission.CREATE,
-      },
+      // {
+      //   title: "Create",
+      //   url: ROUTE_PATH.AboutusMission.CREATE,
+      // },
     ],
   },
   {
@@ -180,12 +191,12 @@ export const controlMenuItems = [
     items: [
       {
         title: "List",
-        url: ROUTE_PATH.SERVICES.LIST,
+        url: ROUTE_PATH.PROMOTION.LIST,
       },
-      {
-        title: "Create",
-        url: ROUTE_PATH.SERVICES.CREATE,
-      },
+      // {
+      //   title: "Create",
+      //   url: ROUTE_PATH.SERVICES.CREATE,
+      // },
       {
         title: "Banner",
         url: ROUTE_PATH.SERVICES.BANNER,
@@ -209,11 +220,11 @@ export const controlMenuItems = [
     items: [
       {
         title: "List",
-        url: ROUTE_PATH.SERVICES.LIST,
+        url: ROUTE_PATH.BLOG.LIST,
       },
       {
         title: "Create",
-        url: ROUTE_PATH.SERVICES.CREATE,
+        url: ROUTE_PATH.BLOG.CREATE,
       },
     ],
   },
