@@ -6,7 +6,7 @@ import { ProfileBtn } from "./ProfileBtn";
 export default function DashboardMenu({ title }: { title?: string }) {
   const { isMobile } = useSidebar();
   return (
-    <nav className=" sticky flex z-10 justify-between items-center px-5 py-4 top-0 right-0 bg-white">
+    <nav className=" sticky flex z-10 justify-between items-center px-5 py-4 top-0 right-0 bg-white shadow">
       <div className="flex gap-3 items-center">
         <SidebarTrigger />
         {isMobile && title ? (

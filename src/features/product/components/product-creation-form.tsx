@@ -116,7 +116,7 @@ export function ProductCreationForm() {
     setSelectedAttributes((prev) =>
       prev.includes(attributeId)
         ? prev.filter((id) => id !== attributeId)
-        : [...prev, attributeId]
+        : [...prev, attributeId],
     );
   };
 
@@ -124,14 +124,14 @@ export function ProductCreationForm() {
     if (selectedAttributes.length === 0) return;
 
     const attributeData = selectedAttributes.map(
-      (id) => mockAttributes.find((attr) => attr.id === id)!
+      (id) => mockAttributes.find((attr) => attr.id === id)!,
     );
 
     const combinations: Record<string, string>[] = [];
 
     const generateCombinations = (
       index: number,
-      current: Record<string, string>
+      current: Record<string, string>,
     ) => {
       if (index === attributeData.length) {
         combinations.push({ ...current });
@@ -163,12 +163,12 @@ export function ProductCreationForm() {
   const updateVariant = (
     variantId: string,
     field: keyof ProductVariant,
-    value: string | number
+    value: string | number,
   ) => {
     setVariants((prev) =>
       prev.map((variant) =>
-        variant.id === variantId ? { ...variant, [field]: value } : variant
-      )
+        variant.id === variantId ? { ...variant, [field]: value } : variant,
+      ),
     );
   };
 
@@ -177,7 +177,7 @@ export function ProductCreationForm() {
     if (files) {
       // In a real app, you'd upload these to your storage service
       const newUrls = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
+        URL.createObjectURL(file),
       );
       setImageUrls((prev) => [...prev, ...newUrls]);
     }
@@ -204,7 +204,7 @@ export function ProductCreationForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 p-3">
+    <form onSubmit={handleSubmit} className="space-y-8">
       <Tabs defaultValue="basic" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="basic">Basic Details</TabsTrigger>
@@ -214,7 +214,7 @@ export function ProductCreationForm() {
         </TabsList>
 
         <TabsContent value="basic" className="space-y-6">
-          <Card>
+          <Card className=" shadow-none">
             <CardHeader>
               <CardTitle>Basic Product Information</CardTitle>
               <CardDescription>
@@ -463,7 +463,7 @@ export function ProductCreationForm() {
                               type="checkbox"
                               id={`attr-${attribute.id}`}
                               checked={selectedAttributes.includes(
-                                attribute.id
+                                attribute.id,
                               )}
                               onChange={() =>
                                 handleAttributeToggle(attribute.id)
@@ -526,7 +526,7 @@ export function ProductCreationForm() {
                                     updateVariant(
                                       variant.id,
                                       "sku",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="text-sm"
@@ -541,7 +541,7 @@ export function ProductCreationForm() {
                                     updateVariant(
                                       variant.id,
                                       "price",
-                                      Number.parseFloat(e.target.value)
+                                      Number.parseFloat(e.target.value),
                                     )
                                   }
                                   className="text-sm"
@@ -555,7 +555,7 @@ export function ProductCreationForm() {
                                     updateVariant(
                                       variant.id,
                                       "stock",
-                                      Number.parseInt(e.target.value)
+                                      Number.parseInt(e.target.value),
                                     )
                                   }
                                   className="text-sm"
@@ -571,7 +571,7 @@ export function ProductCreationForm() {
                                     >
                                       {key}: {value}
                                     </Badge>
-                                  )
+                                  ),
                                 )}
                               </div>
                             </div>
