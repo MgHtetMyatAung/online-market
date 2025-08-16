@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "commit": "cz"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -58,6 +59,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "husky": "^9.1.7",
@@ -70,5 +73,10 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "npx --max-old-space-size=4096 eslint --fix",
     "*.{js,jsx,ts,tsx,json,css,md}": "npx prettier --write"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
