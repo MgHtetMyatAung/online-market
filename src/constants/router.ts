@@ -50,7 +50,7 @@ export const ROUTE_PATH = {
 
   PROMOTION: {
     LIST: "/dashboard/promotion",
-    // CREATE: "/dashboard/category/create",
+    CREATE: "/dashboard/promotion/create",
     // EDIT: "/dashboard/category/edit/",
     VIEW: "/dashboard/promotion/",
   },

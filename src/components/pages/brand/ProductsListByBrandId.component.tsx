@@ -6,20 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Package } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { Brand, Product } from "@prisma/client";
+import { Brand } from "@prisma/client";
 import ProductListTableByBrand from "@/features/brand/components/ProductListTableByBrand";
 import { useGetProducts } from "@/features/product/api/queries";
 import { useGetBrandById } from "@/features/brand/api/queries";
 import clsx from "clsx";
 import useScrollToTop from "@/hooks/useScrollToTop";
-
-interface ProductDetailType extends Product {
-  category: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-}
+import { typeOfProduct } from "@/features/product/type";
 
 export default function ProductsListByBrandId({ id }: { id: string }) {
   //   const params = useParams();
@@ -32,8 +25,7 @@ export default function ProductsListByBrandId({ id }: { id: string }) {
   useScrollToTop();
 
   const brand = brandDetail || ({} as Brand);
-  const products =
-    (productLists as ProductDetailType[]) || ([] as ProductDetailType[]);
+  const products = (productLists as typeOfProduct[]) || ([] as typeOfProduct[]);
 
   if (isLoading || isBrandLoading) {
     return <div>Loading...</div>;
@@ -100,10 +92,13 @@ export default function ProductsListByBrandId({ id }: { id: string }) {
   // Calculate stats
   const activeProducts = products.filter((p) => p.isActive === true).length;
   const totalValue = products.reduce(
-    (sum, product) => sum + product.price * product.stock,
-    0
+    (sum, product) =>
+      sum + Number(product.basePrice) * Number(product?.totalStock),
+    0,
   );
-  const lowStockProducts = products.filter((p) => p.stock < 10).length;
+  const lowStockProducts = products.filter(
+    (p) => Number(p.totalStock) < 10,
+  ).length;
 
   return (
     <div className="flex flex-col">

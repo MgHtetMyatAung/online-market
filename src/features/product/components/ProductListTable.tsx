@@ -20,6 +20,7 @@ import { useGetProducts } from "../api/queries";
 import { Product } from "@prisma/client";
 import { typeOfProduct } from "../type";
 import { checkStock } from "./checkStock";
+import LinkButton from "@/components/actions/LinkButton";
 
 function ProductListTable() {
   const { data: products, isLoading } = useGetProducts();
@@ -62,7 +63,7 @@ function ProductListTable() {
         ),
       },
       {
-        accessorKey: "price",
+        accessorKey: "basePrice",
         header: "Price",
         cell: (info) => `${Number(info.getValue()).toFixed(2)} MMK`,
         meta: {
@@ -72,7 +73,7 @@ function ProductListTable() {
         },
       },
       {
-        accessorKey: "stock",
+        accessorKey: "totalStock",
         header: "Stock",
         cell: (info) => <>{checkStock(Number(info.getValue()), 10)}</>,
         meta: {
@@ -140,7 +141,9 @@ function ProductListTable() {
             </DropdownMenu>
           </div>
         )}
-        topRightComponent={<Button>Add Product</Button>}
+        topRightComponent={
+          <LinkButton href={ROUTE_PATH.PRODUCT.CREATE}>Add Product</LinkButton>
+        }
       />
     </div>
   );

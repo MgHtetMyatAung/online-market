@@ -70,12 +70,12 @@ export default function ProductListTableByCategory({
         header: "Brand",
         cell: ({ row }) => (
           <span className="text-gray-700">
-            {String(row.original.brand.name)}
+            {String(row.original?.brand?.name || "")}
           </span>
         ),
       },
       {
-        accessorKey: "price",
+        accessorKey: "basePrice",
         header: "Price",
         cell: (info) => `${Number(info.getValue()).toFixed(2)} MMK`,
         meta: {
@@ -110,7 +110,7 @@ export default function ProductListTableByCategory({
         ),
       },
     ],
-    []
+    [],
   );
 
   return (

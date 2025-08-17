@@ -165,6 +165,7 @@ model Product {
   youtubeVideo  String?
   specification String?
   basePrice     Decimal  @db.Decimal(10, 2)
+  stock         Int      @default(0)
   imageUrls     String[]
   isFeatured    Boolean  @default(false)
   isActive      Boolean  @default(true)
@@ -220,6 +221,9 @@ model Promotion {
   startDate        DateTime
   endDate          DateTime
   isActive         Boolean       @default(true)
+  minQuantity      Int?
+  maxQuantity      Int?
+  imageUrl         String?
   minLoyaltyPoints Int?
   couponCode       String?       @unique
   products         Product[]

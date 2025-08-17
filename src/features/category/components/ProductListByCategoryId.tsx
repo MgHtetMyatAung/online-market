@@ -30,7 +30,7 @@ export default function ProductListByCategoryId({
 
   // Get unique brands for filter
   const brands = Array.from(
-    new Set(products?.map((product) => product.brandId))
+    new Set(products?.map((product) => product.brandId)),
   );
 
   if (isLoading || isCategoryLoading) {
@@ -66,8 +66,9 @@ export default function ProductListByCategoryId({
   // Calculate stats
   const activeProducts = products?.filter((p) => p.isActive === true).length;
   const totalValue = products?.reduce(
-    (sum, product) => sum + product.price * product.stock,
-    0
+    (sum, product) =>
+      sum + Number(product.basePrice) * Number(product.totalStock),
+    0,
   );
   const lowStockProducts = products?.filter((p) => p.stock < 10).length;
 
@@ -105,7 +106,7 @@ export default function ProductListByCategoryId({
         <Button variant="ghost" asChild>
           <Link href="/dashboard/category">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Brands
+            Back to Categoris
           </Link>
         </Button>
       </header>

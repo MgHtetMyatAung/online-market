@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApiResponseHandler } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
-import { NextRequest } from "next/server";
+import { productUpdateSchema } from "@/lib/validations/product";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   try {
@@ -13,51 +16,133 @@ export async function GET(
     });
 
     if (!product) {
-      return ApiResponseHandler.error(
-        "Product not found",
-        404,
-        "Product with the specified ID does not exist"
-      );
+      return NextResponse.json("Product not found", { status: 404 });
     }
 
-    return ApiResponseHandler.success(
-      product,
-      "Product retrieved successfully"
-    );
+    return NextResponse.json(product, { status: 200 });
   } catch (error) {
-    return ApiResponseHandler.error(
-      "Failed to fetch product",
-      500,
-      error instanceof Error ? error.message : "Unknown error"
-    );
+    return NextResponse.json("Failed to fetch product", { status: 500 });
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   try {
     const body = await request.json();
+
+    // Validate request body with Zod
+    const validationResult = productUpdateSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return ApiResponseHandler.error(
+        "Invalid product data",
+        400,
+        validationResult.error.errors
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(", "),
+      );
+    }
+
+    const {
+      name,
+      slug,
+      description,
+      basePrice,
+      categoryId,
+      brandId,
+      imageUrls,
+      isFeatured,
+      isActive,
+      isDeleted,
+      promotionId,
+      howToUse,
+      youtubeVideo,
+      specification,
+      variants,
+    } = validationResult.data;
+
     const product = await prisma.product.update({
       where: { id },
-      data: body,
+      data: {
+        name,
+        slug,
+        description,
+        basePrice,
+        imageUrls,
+        howToUse,
+        youtubeVideo,
+        specification,
+        isFeatured,
+        isActive,
+        isDeleted,
+        ...(categoryId && {
+          category: {
+            connect: { id: categoryId },
+          },
+        }),
+        ...(brandId && {
+          brand: {
+            connect: { id: brandId },
+          },
+        }),
+        ...(promotionId && {
+          promotion: {
+            connect: { id: promotionId },
+          },
+        }),
+        ...(variants &&
+          variants.length > 0 && {
+            variants: {
+              deleteMany: {}, // Remove existing variants
+              createMany: {
+                data: variants.map((v) => ({
+                  sku: v.sku,
+                  price: v.price,
+                  stock: v.stock,
+                  attributes: v.attributes,
+                  // isActive: v.isActive ?? true,
+                  // isDeleted: v.isDeleted ?? false
+                })),
+              },
+            },
+          }),
+      },
+      include: {
+        category: true,
+        brand: true,
+        promotion: true,
+        variants: true,
+      },
     });
 
-    return ApiResponseHandler.success(product, "Product updated successfully");
-  } catch (error) {
+    return NextResponse.json(product, { status: 200 });
+  } catch (error: any) {
+    console.error("Failed to update product:", error);
+    let errorMessage = "Failed to update product";
+    let statusCode = 400;
+
+    if (error.code === "P2002" && error.meta?.target?.includes("slug")) {
+      errorMessage = "Product slug must be unique.";
+      statusCode = 409;
+    } else if (error.code === "P2025") {
+      errorMessage = "Associated category, brand, or promotion not found.";
+      statusCode = 404;
+    }
+
     return ApiResponseHandler.error(
-      "Failed to update product",
-      400,
-      error instanceof Error ? error.message : "Unknown error"
+      errorMessage,
+      statusCode,
+      error instanceof Error ? error.message : "Unknown error",
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   try {
@@ -65,16 +150,12 @@ export async function DELETE(
       where: { id },
     });
 
-    return ApiResponseHandler.success(
-      null,
-      "Product deleted successfully",
-      204
-    );
+    return NextResponse.json("Product deleted successfully", { status: 200 });
   } catch (error) {
     return ApiResponseHandler.error(
       "Failed to delete product",
       400,
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
   }
 }

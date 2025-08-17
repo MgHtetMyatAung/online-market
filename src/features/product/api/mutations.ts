@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,27 +5,20 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/services/query-keys";
 import { productApi } from ".";
 import { z } from "zod";
-
-const formSchema = z.object({
-  name: z.string().min(1),
-  slug: z.string().min(1),
-  description: z.string().optional(),
-  image: z.string().optional(),
-});
+import toast from "react-hot-toast";
+import { productSchema } from "@/lib/validations/product";
 
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (newProduct: Omit<z.infer<typeof formSchema>, "id">) =>
-      productApi.createProduct({
-        name: newProduct.name,
-        slug: newProduct.slug,
-        image: newProduct.image || undefined,
-        description: newProduct.description || undefined,
-      }),
+    mutationFn: (newProduct: Omit<z.infer<typeof productSchema>, "id">) =>
+      productApi.createProduct(newProduct),
     onSuccess: () => {
       // Invalidate the 'products' query to refetch the list after a new product is created
       queryClient.invalidateQueries({ queryKey: queryKeys.products() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.promotions() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.brands() });
+      toast.success("Product created successfully");
       // You might also update the cache directly if you know the new product's ID
     },
     onError: (error) => {
@@ -44,14 +36,8 @@ export const useUpdateProduct = () => {
       data,
     }: {
       id: string;
-      data: Partial<Omit<z.infer<typeof formSchema>, "id">>;
-    }) =>
-      productApi.updateProduct(id, {
-        name: data.name ?? "",
-        slug: data.slug ?? "",
-        description: data.description,
-        image: data.image,
-      }),
+      data: z.infer<typeof productSchema>;
+    }) => productApi.updateProduct(id, data),
     onSuccess: (updatedProduct) => {
       // Invalidate both the specific product query and the products list
       queryClient.invalidateQueries({

@@ -1,4 +1,4 @@
-import { ProductCreationForm } from "@/features/product/components/product-creation-form";
+import { ProductCreationForm } from "@/features/product/components/product-form/product-creation-form";
 
 export default function ProductCreatePage() {
   return (

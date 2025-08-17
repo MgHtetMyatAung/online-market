@@ -1,11 +1,11 @@
-import { PromotionsManagement } from "@/features/promotion/components/promotion-management";
+import PromotionListTable from "@/features/promotion/components/promotion-list-table";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function PromotionsPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="">
+      <div className="">
         <div className="mb-6">
           <Link
             href="/dashboard"
@@ -16,7 +16,8 @@ export default function PromotionsPage() {
           </Link>
         </div>
 
-        <PromotionsManagement />
+        {/* <PromotionsManagement /> */}
+        <PromotionListTable />
       </div>
     </div>
   );

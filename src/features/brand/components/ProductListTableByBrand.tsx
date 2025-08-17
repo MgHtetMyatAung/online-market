@@ -67,7 +67,7 @@ function ProductListTableByBrand({ brandId }: Props) {
         ),
       },
       {
-        accessorKey: "price",
+        accessorKey: "basePrice",
         header: "Price",
         cell: (info) => `${Number(info.getValue()).toFixed(2)} MMK`,
         meta: {
@@ -102,7 +102,7 @@ function ProductListTableByBrand({ brandId }: Props) {
         ),
       },
     ],
-    []
+    [],
   );
 
   return (

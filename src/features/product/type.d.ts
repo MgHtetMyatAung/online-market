@@ -11,6 +11,8 @@ interface typeOfProduct extends Product {
     name: string;
     slug: string;
   };
+  inStock?: boolean;
+  totalStock?: number;
 }
 
 interface GetProductsParams {

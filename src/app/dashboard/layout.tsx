@@ -1,3 +1,4 @@
+import DashboardSectionLayout from "@/components/layout/dashboard-section-layout";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
 export default function DashboardRootLayout({
@@ -5,5 +6,9 @@ export default function DashboardRootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return (
+    <DashboardLayout>
+      <DashboardSectionLayout>{children}</DashboardSectionLayout>
+    </DashboardLayout>
+  );
 }

@@ -8,22 +8,57 @@ import { NextRequest, NextResponse } from "next/server"; // Import UserRole enum
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const brandId = searchParams.get("brandId");
     const categoryId = searchParams.get("categoryId");
+    const brandId = searchParams.get("brandId");
     const promotionId = searchParams.get("promotionId");
+    const collectionId = searchParams.get("collectionId");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+    const search = searchParams.get("search");
 
-    const where: any = {};
-
-    if (brandId) {
-      where.brandId = brandId;
-    }
+    const where: any = {
+      // isDeleted: false, // Exclude deleted products
+      // isActive: true, // Only include active products
+    };
 
     if (categoryId) {
       where.categoryId = categoryId;
     }
 
+    if (brandId) {
+      where.brandId = brandId;
+    }
+
     if (promotionId) {
       where.promotionId = promotionId;
+    }
+
+    if (collectionId) {
+      where.collections = {
+        some: {
+          collectionId,
+        },
+      };
+    }
+
+    // Add price range filter
+    if (minPrice || maxPrice) {
+      where.basePrice = {};
+      if (minPrice) {
+        where.basePrice.gte = parseFloat(minPrice);
+      }
+      if (maxPrice) {
+        where.basePrice.lte = parseFloat(maxPrice);
+      }
+    }
+
+    // Add search filter
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { specification: { contains: search, mode: "insensitive" } },
+      ];
     }
 
     const products = await prisma.product.findMany({
@@ -44,24 +79,47 @@ export async function GET(request: Request) {
             couponCode: true,
           },
         },
-        variants: true, // Include product variants
+        variants: {
+          select: {
+            id: true,
+            sku: true,
+            price: true,
+            stock: true,
+            attributes: {
+              include: {
+                attributeValue: {
+                  include: {
+                    attribute: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "desc", // Order by creation date, newest first
       },
     });
 
+    const productsWithStock = products.map((product) => ({
+      ...product,
+      inStock: product.variants.some((v) => v.stock > 0),
+      totalStock:
+        product.variants.reduce((sum, v) => sum + v.stock, 0) + product.stock,
+    }));
+
     // return ApiResponseHandler.success(
     //   products,
     //   "Products retrieved successfully"
     // );
-    return NextResponse.json(products, { status: 200 });
+    return NextResponse.json(productsWithStock, { status: 200 });
   } catch (error) {
     console.error("Failed to fetch products:", error); // Log the error for debugging
     return ApiResponseHandler.error(
       "Failed to fetch products",
       500,
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
   }
 }
@@ -71,35 +129,35 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Validate request body with Zod
-    // Ensure productSchema in lib/validations/product.ts includes:
-    // slug, name, description, price, stock, categoryId, brandId, imageUrls, isFeatured, isActive, promotionId
     const validationResult = productSchema.safeParse(body);
 
     if (!validationResult.success) {
       console.error("Product validation error:", validationResult.error.errors);
-      return ApiResponseHandler.error(
-        "Invalid product data",
-        400,
+      return NextResponse.json(
         validationResult.error.errors
-          .map((e) => `${e.path.join(".")}: ${e.message}`) // Join path for better error message
-          .join(", ")
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(", "),
+        { status: 400 },
       );
     }
 
     const {
       name,
-      slug, // New field
+      slug,
       description,
-      price,
+      basePrice,
       stock,
       categoryId,
-      brandId, // New field
-      imageUrls, // New field
-      isFeatured, // New field
-      isActive, // New field
-      promotionId, // New field
-      variants, // Assuming variants can be created with the product
+      brandId,
+      imageUrls,
+      isFeatured,
+      isActive,
+      promotionId,
+      variants,
+      howToUse,
+      youtubeVideo,
+      specification,
+      isDeleted,
     } = validationResult.data;
 
     const product = await prisma.product.create({
@@ -107,48 +165,45 @@ export async function POST(request: NextRequest) {
         name,
         slug,
         description,
-        price,
+        basePrice,
         stock,
         imageUrls,
-        isFeatured: isFeatured ?? false, // Default to false if not provided
-        isActive: isActive ?? true, // Default to true if not provided
+        howToUse,
+        youtubeVideo,
+        specification,
+        isFeatured: isFeatured ?? false,
+        isActive: isActive ?? true,
+        isDeleted: isDeleted ?? false,
         category: {
-          connect: {
-            id: categoryId,
-          },
+          connect: { id: categoryId },
         },
-        // Conditionally connect brand if brandId is provided
         ...(brandId && {
           brand: {
-            connect: {
-              id: brandId,
-            },
+            connect: { id: brandId },
           },
         }),
-        // Conditionally connect promotion if promotionId is provided
         ...(promotionId && {
           promotion: {
-            connect: {
-              id: promotionId,
-            },
+            connect: { id: promotionId },
           },
         }),
-        // Create nested variants if provided
         ...(variants &&
           variants.length > 0 && {
             variants: {
               createMany: {
                 data: variants.map((v) => ({
-                  name: v.name,
-                  value: v.value,
-                  variantStock: v.variantStock, // Ensure variantStock is handled
+                  sku: v.sku,
+                  price: v.price,
+                  stock: v.stock,
+                  attributes: v.attributes,
+                  // isActive: v.isActive ?? true,
+                  // isDeleted: v.isDeleted ?? false
                 })),
               },
             },
           }),
       },
       include: {
-        // Include created relations in the response
         category: true,
         brand: true,
         promotion: true,
@@ -156,11 +211,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return ApiResponseHandler.success(
-      product,
-      "Product created successfully",
-      201
-    );
+    return NextResponse.json(product, { status: 201 }); // 201 Created for resource creation, not 200 O
   } catch (error: any) {
     console.error("Failed to create product:", error); // Log the error for debugging
     let errorMessage = "Failed to create product";
@@ -181,7 +232,7 @@ export async function POST(request: NextRequest) {
     return ApiResponseHandler.error(
       errorMessage,
       statusCode,
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
   }
 }
