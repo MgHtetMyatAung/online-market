@@ -90,14 +90,15 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   try {
-    const attribute = await prisma.attribute.delete({
-      where: { id: params.id },
+    await prisma.attribute.delete({
+      where: { id },
     });
 
-    return NextResponse.json(attribute, { status: 200 });
+    return NextResponse.json({ status: 200 });
   } catch (error: any) {
     console.error("Error deleting attribute:", error);
     if (error.code === "P2025") {

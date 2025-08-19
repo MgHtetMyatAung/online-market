@@ -9,6 +9,14 @@ export async function GET(req: NextRequest) {
     const attributes = await prisma.attribute.findMany({
       include: {
         values: true,
+        _count: {
+          select: {
+            values: true,
+          },
+        },
+      },
+      orderBy: {
+        name: "desc",
       },
     });
 

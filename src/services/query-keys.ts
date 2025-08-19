@@ -8,6 +8,8 @@ export const queryKeys = {
   category: (id: string) => ["category", id] as const,
   promotions: (params?: Record<string, any>) => ["promotions", params] as const,
   promotion: (id: string) => ["promotion", id] as const,
+  attributes: (params?: Record<string, any>) => ["attributes", params] as const,
+  attribute: (id: string) => ["attribute", id] as const,
   cart: (userId: string) => ["cart", userId] as const,
   user: (userId: string) => ["user", userId] as const,
   // Add more keys as your features grow

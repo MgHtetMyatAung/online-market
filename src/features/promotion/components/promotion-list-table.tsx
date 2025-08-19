@@ -173,8 +173,8 @@ export default function PromotionListTable() {
     <div className="">
       <h2 className="text-2xl font-bold mb-4">Promotions</h2>
       <DataTable
-        tableId="orders"
-        label="Orders"
+        tableId="promotions"
+        label="Promotions"
         data={promotions || []}
         columns={columns}
         isLoading={isLoading}
@@ -183,7 +183,7 @@ export default function PromotionListTable() {
         enablePagination
         pageSizeOptions={[5, 10, 20]} // Different page size options
         initialPageSize={5}
-        renderRowActions={(order: Promotion) => (
+        renderRowActions={(promotion: Promotion) => (
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -196,7 +196,7 @@ export default function PromotionListTable() {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem>View details</DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`${ROUTE_PATH.ORDER.EDIT}${order.id}`}>
+                  <Link href={`${ROUTE_PATH.ORDER.EDIT}${promotion.id}`}>
                     Edit promotion
                   </Link>
                 </DropdownMenuItem>

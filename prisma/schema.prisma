@@ -120,7 +120,7 @@ model AttributeValue {
   id                String                  @id @default(uuid())
   value             String
   attributeId       String
-  attribute         Attribute               @relation(fields: [attributeId], references: [id])
+  attribute         Attribute               @relation(fields: [attributeId], references: [id], onDelete: Cascade)
   variantAttributes VariantAttributeValue[]
 
   @@unique([attributeId, value])
