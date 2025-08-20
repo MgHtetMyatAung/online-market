@@ -84,7 +84,7 @@ export default function AttributeEditModal({
   return (
     <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogClose}>
       <DialogTrigger asChild>
-        <SquarePen size={20} className=" cursor-pointer" />
+        <SquarePen size={20} className=" cursor-pointer mt-[1px]" />
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

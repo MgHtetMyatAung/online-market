@@ -131,7 +131,7 @@ function DataListTable<TData extends TableDataItem>({
 
   const [columnVisibility, setInternalColumnVisibility] =
     useState<VisibilityState>(
-      initialVisibility || initialColumnVisibility || {}
+      initialVisibility || initialColumnVisibility || {},
     );
 
   // Update URL when pagination changes
@@ -175,8 +175,13 @@ function DataListTable<TData extends TableDataItem>({
             enableSorting: false,
             enableColumnFilter: false,
             enableHiding: false,
+            meta: {
+              style: {
+                textAlign: "right",
+              },
+            },
           }
-        : []
+        : [],
     ) as ColumnDef<TData>[];
   }, [columns, renderRowActions]);
 
@@ -197,7 +202,7 @@ function DataListTable<TData extends TableDataItem>({
       ? (updater) => {
           setSorting(updater);
           onSortingChange?.(
-            updater instanceof Function ? updater(sorting) : updater
+            updater instanceof Function ? updater(sorting) : updater,
           );
         }
       : undefined,
@@ -205,7 +210,7 @@ function DataListTable<TData extends TableDataItem>({
       ? (updater) => {
           setGlobalFilter(updater);
           onGlobalFilterChange?.(
-            updater instanceof Function ? updater(globalFilter) : updater
+            updater instanceof Function ? updater(globalFilter) : updater,
           );
         }
       : undefined,
@@ -334,7 +339,7 @@ function DataListTable<TData extends TableDataItem>({
                       {
                         "cursor-pointer select-none":
                           header.column.getCanSort(),
-                      }
+                      },
                     )}
                     onClick={header.column.getToggleSortingHandler()}
                   >
@@ -345,13 +350,13 @@ function DataListTable<TData extends TableDataItem>({
                           checkAlign(
                             header.column.columnDef.meta?.style.textAlign ||
                               "left",
-                            "th"
-                          )
+                            "th",
+                          ),
                         )}
                       >
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                         {enableSorting && header.column.getCanSort() && (
                           <span className="ml-1">
@@ -405,13 +410,13 @@ function DataListTable<TData extends TableDataItem>({
                         "px-6 py-4 whitespace-nowrap text-sm text-gray-900",
                         checkAlign(
                           cell.column.columnDef.meta?.style.textAlign || "left",
-                          "td"
-                        )
+                          "td",
+                        ),
                       )}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </td>
                   ))}

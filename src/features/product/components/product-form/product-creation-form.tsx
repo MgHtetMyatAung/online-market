@@ -6,7 +6,7 @@ import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // Assuming a new directory structure
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BasicDetailsTab } from "./product-basic-tab";
 import { VariantsTab } from "./product-variant-tab";
 import { PromotionsTab } from "./product-promotion-tab";
@@ -14,25 +14,13 @@ import { PublishingTab } from "./product-publish-tab";
 import { productSchema } from "@/lib/validations/product";
 import SubmitBtn from "@/components/actions/SubmitBtn";
 import { useCreateProduct } from "../../api/mutations";
+import { useGetAttributes } from "@/features/attribute/api/queries";
 
 type FormData = z.infer<typeof productSchema>;
 
-const mockAttributes = [
-  {
-    id: "1",
-    name: "Color",
-    values: ["Red", "Blue", "Green", "Black", "White"],
-  },
-  { id: "2", name: "Size", values: ["XS", "S", "M", "L", "XL", "XXL"] },
-  {
-    id: "3",
-    name: "Material",
-    values: ["Cotton", "Polyester", "Wool", "Silk"],
-  },
-];
-
 export function ProductCreationForm() {
   const { mutate, isPending, isSuccess } = useCreateProduct();
+  const { data: attributes } = useGetAttributes();
   const form = useForm<FormData>({
     resolver: zodResolver(productSchema) as Resolver<FormData>,
     defaultValues: {
@@ -60,6 +48,7 @@ export function ProductCreationForm() {
     setValue,
     formState: { errors },
   } = form;
+
   const nameValue = watch("name");
   const slugValue = watch("slug");
   const basePriceValue = watch("basePrice");
@@ -67,6 +56,7 @@ export function ProductCreationForm() {
 
   const [hasVariants, setHasVariants] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
 
   // Automatically generate slug on name change
   useEffect(() => {
@@ -93,9 +83,13 @@ export function ProductCreationForm() {
       return;
     }
 
-    const attributeData = selectedAttributes.map(
-      (id) => mockAttributes.find((attr) => attr.id === id)!,
-    );
+    const attributeData = selectedAttributes.map((id) => {
+      const attribute = attributes?.find((attr) => attr.id === id);
+      if (!attribute) {
+        throw new Error(`Attribute with id ${id} not found`);
+      }
+      return attribute;
+    });
 
     const combinations: Record<string, string>[] = [];
     const generateCombinations = (
@@ -108,14 +102,14 @@ export function ProductCreationForm() {
       }
       const attribute = attributeData[index];
       for (const value of attribute.values) {
-        current[attribute.name] = value;
+        current[attribute.name] = value.value;
         generateCombinations(index + 1, current);
       }
     };
     generateCombinations(0, {});
 
     const newVariants = combinations.map((combo, index) => ({
-      id: `variant-${index}`,
+      id: `variant-${index}-${Date.now()}`, // Ensure unique ID
       sku: `${slugValue || "product"}-${Object.values(combo)
         .join("-")
         .toLowerCase()}`,
@@ -123,6 +117,10 @@ export function ProductCreationForm() {
       stock: 0,
       attributes: combo,
     }));
+
+    // Reset selected variant IDs when new variants are generated
+    // setSelectedVariantIds(newVariants.map((v) => v.id));
+
     setValue(
       "variants",
       newVariants.map((variant) => ({
@@ -132,8 +130,7 @@ export function ProductCreationForm() {
         stock: variant.stock,
         attributes: Object.entries(variant.attributes).map(([name, value]) => ({
           value,
-          attributeId:
-            mockAttributes.find((attr) => attr.name === name)?.id || "",
+          attributeId: attributes?.find((attr) => attr.name === name)?.id || "",
         })),
       })),
       { shouldDirty: true, shouldValidate: true },
@@ -154,8 +151,35 @@ export function ProductCreationForm() {
     setImageUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleVariantCheckboxChange = (variantId: string) => {
+    setSelectedVariantIds((prev) =>
+      prev.includes(variantId)
+        ? prev.filter((id) => id !== variantId)
+        : [...prev, variantId],
+    );
+  };
+
+  const handleSelectAllVariants = (data: string[]) => {
+    setSelectedVariantIds(data);
+  };
+
   const onSubmit = async (data: FormData) => {
-    await mutate(data);
+    // Filter the variants based on the selectedVariantIds state
+    const selectedVariants = selectedVariantIds.map((id) =>
+      data.variants?.find((variant) => variant.id === id),
+    );
+
+    console.log(
+      selectedVariants,
+      data.variants,
+      selectedVariantIds,
+      "selectedVariants",
+    );
+
+    const filteredData = {
+      ...data,
+    };
+    await mutate(filteredData);
   };
 
   console.log(errors, "errors");
@@ -163,8 +187,9 @@ export function ProductCreationForm() {
   useEffect(() => {
     if (isSuccess) {
       form.reset();
+      setSelectedVariantIds([]); // Reset selected IDs on success
     }
-  }, [isSuccess]);
+  }, [isSuccess, form]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -192,7 +217,10 @@ export function ProductCreationForm() {
             setHasVariants={setHasVariants}
             generateVariants={generateVariants}
             handleAttributeToggle={handleAttributeToggle}
-            mockAttributes={mockAttributes}
+            mockAttributes={attributes || []}
+            selectedVariantIds={selectedVariantIds}
+            handleVariantCheckboxChange={handleVariantCheckboxChange}
+            handleSelectAllVariants={handleSelectAllVariants}
           />
         </TabsContent>
 

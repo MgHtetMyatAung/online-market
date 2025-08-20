@@ -116,7 +116,7 @@ function ProductListTable() {
         pageSizeOptions={[5, 10, 20]} // Different page size options
         initialPageSize={5}
         renderRowActions={(product: Product) => (
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">

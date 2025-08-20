@@ -195,7 +195,15 @@ export async function POST(request: NextRequest) {
                   sku: v.sku,
                   price: v.price,
                   stock: v.stock,
-                  attributes: v.attributes,
+                  attributes: {
+                    createMany: {
+                      data: v.attributes.map((attr) => ({
+                        attributeId: attr.attributeId,
+                        value: attr.value,
+                      })),
+                    },
+                  },
+                  // attributes: v.attributes,
                   // isActive: v.isActive ?? true,
                   // isDeleted: v.isDeleted ?? false
                 })),
@@ -207,9 +215,44 @@ export async function POST(request: NextRequest) {
         category: true,
         brand: true,
         promotion: true,
-        variants: true,
+        variants: {
+          include: {
+            attributes: {
+              include: {
+                attributeValue: true,
+              },
+            },
+          },
+        },
       },
     });
+
+    // if(variants && variants?.length>0){
+
+    //   await Promise.all(
+    //     product.variants.map((newVariant, index) => {
+    //       // Find the original variant data by its index
+    //       const originalVariant = variants[index];
+
+    //       if (originalVariant.attributes && originalVariant.attributes.length > 0) {
+    //         return prisma.variantAttributeValue.update({
+    //           where: { id: newVariant.id },
+    //           data: {
+    //             attributes: {
+    //               createMany: {
+    //                 data: originalVariant.attributes.map((attr) => ({
+    //                   attributeId: attr.attributeId,
+    //                   value: attr.value,
+    //                 })),
+    //               },
+    //             },
+    //           },
+    //         });
+    //       }
+    //       return Promise.resolve();
+    //     })
+    //   );
+    // }
 
     return NextResponse.json(product, { status: 201 }); // 201 Created for resource creation, not 200 O
   } catch (error: any) {

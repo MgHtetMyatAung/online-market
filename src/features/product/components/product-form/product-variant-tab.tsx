@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { z } from "zod"; // Assuming schema is in lib/schemas
+import { z } from "zod";
 import { productSchema } from "@/lib/validations/product";
 
 type FormData = z.infer<typeof productSchema>;
@@ -27,6 +27,9 @@ interface VariantsTabProps {
   generateVariants: () => void;
   handleAttributeToggle: (attributeId: string) => void;
   mockAttributes: any[];
+  selectedVariantIds: string[];
+  handleVariantCheckboxChange: (variantId: string) => void;
+  handleSelectAllVariants: (data: [] | string[]) => void;
 }
 
 export const VariantsTab: React.FC<VariantsTabProps> = ({
@@ -36,7 +39,11 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   generateVariants,
   handleAttributeToggle,
   mockAttributes,
+  selectedVariantIds,
+  handleVariantCheckboxChange,
+  handleSelectAllVariants,
 }) => {
+  const [checkAll, setCheckAll] = useState(false);
   const { register, control, watch, setValue } = form;
   const selectedAttributes = watch("selectedAttributes") || [];
 
@@ -46,6 +53,17 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   });
 
   console.log(variantFields, "variantFields");
+
+  const chooseAllVariants = () => {
+    if (checkAll) {
+      setCheckAll(false);
+      handleSelectAllVariants([]);
+    } else {
+      setCheckAll(true);
+      const allVariantIds = variantFields.map((field) => field.id);
+      handleSelectAllVariants(allVariantIds);
+    }
+  };
 
   useEffect(() => {
     if (!hasVariants) {
@@ -78,7 +96,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
               <h4 className="text-sm font-medium">Select Attributes</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {mockAttributes.map((attribute) => (
-                  <div key={attribute.id} className="space-y-2">
+                  <div key={attribute.id} className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -87,18 +105,21 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                         onChange={() => handleAttributeToggle(attribute.id)}
                         className="rounded border-gray-300"
                       />
-                      <Label htmlFor={`attr-${attribute.id}`}>
+                      <Label
+                        htmlFor={`attr-${attribute.id}`}
+                        className=" text-blue-700"
+                      >
                         {attribute.name}
                       </Label>
                     </div>
-                    <div className="flex flex-wrap gap-1">
-                      {attribute.values.map((value: string) => (
+                    <div className="flex flex-wrap gap-2 ps-4">
+                      {attribute.values.map((value: any) => (
                         <Badge
-                          key={value}
-                          variant="outline"
+                          key={value.id}
+                          variant="secondary"
                           className="text-xs"
                         >
-                          {value}
+                          {value.value}
                         </Badge>
                       ))}
                     </div>
@@ -120,23 +141,39 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 {variantFields.length > 0 && (
                   <div className="border rounded-lg overflow-hidden">
                     <div className="bg-muted p-3 grid grid-cols-12 gap-2 text-sm font-medium">
-                      <div className="col-span-3">SKU</div>
-                      <div className="col-span-2">Price</div>
-                      <div className="col-span-2">Stock</div>
-                      <div className="col-span-5">Attributes</div>
+                      <div className="col-span-3 flex gap-3">
+                        <input
+                          type="checkbox"
+                          // checked={selectedVariantIds.includes(field.id)}
+                          onChange={chooseAllVariants}
+                          className="rounded border-gray-300"
+                        />{" "}
+                        SKU
+                      </div>
+                      <div className="col-span-3">Price</div>
+                      <div className="col-span-3">Stock</div>
+                      <div className="col-span-3">Attributes</div>
                     </div>
                     {variantFields.map((field, index) => (
                       <div
                         key={field.id}
                         className="p-3 border-t grid grid-cols-12 gap-2 items-center"
                       >
-                        <div className="col-span-3">
+                        <div className="col-span-3 flex gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedVariantIds.includes(field.id)}
+                            onChange={() =>
+                              handleVariantCheckboxChange(field.id)
+                            }
+                            className="rounded border-gray-300"
+                          />
                           <Input
                             {...register(`variants.${index}.sku`)}
                             className="text-sm"
                           />
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-3">
                           <Input
                             type="number"
                             step="0.01"
@@ -146,7 +183,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                             className="text-sm"
                           />
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-3">
                           <Input
                             type="number"
                             {...register(`variants.${index}.stock`, {
@@ -155,7 +192,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                             className="text-sm"
                           />
                         </div>
-                        <div className="col-span-5 flex flex-wrap gap-1">
+                        <div className="col-span-3 flex flex-wrap gap-1">
                           {field?.attributes?.map((attribute) => (
                             <Badge
                               key={attribute.attributeId}

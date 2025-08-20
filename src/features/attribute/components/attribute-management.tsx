@@ -77,7 +77,7 @@ export function AttributeManagement() {
         pageSizeOptions={[5, 10, 20]} // Different page size options
         initialPageSize={5}
         renderRowActions={(attribute: typeOfAttribute) => (
-          <div className="flex gap-1">
+          <div className="flex gap-3 justify-end">
             <AttributeEditModal attribute={attribute} />
             <DeleteConfirmBtn
               title="Attribute"
@@ -86,7 +86,7 @@ export function AttributeManagement() {
               isPending={isPending}
               isSuccess={isSuccess}
             >
-              <Trash2 size={19} />
+              <Trash2 size={20} />
             </DeleteConfirmBtn>
           </div>
         )}

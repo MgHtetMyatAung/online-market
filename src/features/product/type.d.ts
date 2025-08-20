@@ -20,3 +20,14 @@ interface GetProductsParams {
   categoryId?: string;
   promotionId?: string;
 }
+
+interface ProductVariantType {
+  id: string;
+  sku: string;
+  price: number;
+  stock: number;
+  attributes: {
+    attributeId: string;
+    value: string;
+  };
+}

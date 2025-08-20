@@ -1,4 +1,3 @@
- 
 import React from "react";
 import {
   Card,
@@ -97,6 +96,18 @@ export const BasicDetailsTab: React.FC<BasicDetailsTabProps> = ({
             />
             {errors.basePrice && (
               <p className="text-sm text-red-500">{errors.basePrice.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="baseStock">Base Stock *</Label>
+            <Input
+              id="baseStock"
+              type="number"
+              {...register("stock", { valueAsNumber: true })}
+              placeholder="0"
+            />
+            {errors.stock && (
+              <p className="text-sm text-red-500">{errors.stock.message}</p>
             )}
           </div>
 
