@@ -2,8 +2,9 @@ import { z } from "zod";
 
 // Define a schema for variant attributes
 const variantAttributeValueSchema = z.object({
-  attributeId: z.string().uuid("Invalid attribute ID."),
-  value: z.string().min(1, "Attribute value is required."),
+  attributeId: z.string().uuid("Invalid attribute ID.").optional(),
+  value: z.string().min(1, "Attribute value is required.").optional(),
+  attributeValueId: z.string().uuid("Invalid attribute value ID.").optional(),
 });
 
 // Define a schema for product variants

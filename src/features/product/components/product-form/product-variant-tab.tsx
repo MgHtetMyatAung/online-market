@@ -28,8 +28,8 @@ interface VariantsTabProps {
   handleAttributeToggle: (attributeId: string) => void;
   mockAttributes: any[];
   selectedVariantIds: string[];
-  handleVariantCheckboxChange: (variantId: string) => void;
-  handleSelectAllVariants: (data: [] | string[]) => void;
+  handleVariantCheckboxChange: (variantId: string, idx: number) => void;
+  handleSelectAllVariants: (data: [] | string[], num: [] | number[]) => void;
 }
 
 export const VariantsTab: React.FC<VariantsTabProps> = ({
@@ -52,16 +52,15 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     name: "variants",
   });
 
-  console.log(variantFields, "variantFields");
-
   const chooseAllVariants = () => {
     if (checkAll) {
       setCheckAll(false);
-      handleSelectAllVariants([]);
+      handleSelectAllVariants([], []);
     } else {
       setCheckAll(true);
       const allVariantIds = variantFields.map((field) => field.id);
-      handleSelectAllVariants(allVariantIds);
+      const allVariantIndex = variantFields.map((_, idx) => idx);
+      handleSelectAllVariants(allVariantIds, allVariantIndex);
     }
   };
 
@@ -164,7 +163,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                             type="checkbox"
                             checked={selectedVariantIds.includes(field.id)}
                             onChange={() =>
-                              handleVariantCheckboxChange(field.id)
+                              handleVariantCheckboxChange(field.id, index)
                             }
                             className="rounded border-gray-300"
                           />

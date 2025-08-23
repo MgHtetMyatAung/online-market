@@ -14,13 +14,17 @@ import { PublishingTab } from "./product-publish-tab";
 import { productSchema } from "@/lib/validations/product";
 import SubmitBtn from "@/components/actions/SubmitBtn";
 import { useCreateProduct } from "../../api/mutations";
-import { useGetAttributes } from "@/features/attribute/api/queries";
+import {
+  useGetAttributes,
+  useGetVariants,
+} from "@/features/attribute/api/queries";
 
 type FormData = z.infer<typeof productSchema>;
 
 export function ProductCreationForm() {
   const { mutate, isPending, isSuccess } = useCreateProduct();
   const { data: attributes } = useGetAttributes();
+  const { data: variants } = useGetVariants();
   const form = useForm<FormData>({
     resolver: zodResolver(productSchema) as Resolver<FormData>,
     defaultValues: {
@@ -57,6 +61,7 @@ export function ProductCreationForm() {
   const [hasVariants, setHasVariants] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [selectedVariantIds, setSelectedVariantIds] = useState<string[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number[]>([]);
 
   // Automatically generate slug on name change
   useEffect(() => {
@@ -131,6 +136,8 @@ export function ProductCreationForm() {
         attributes: Object.entries(variant.attributes).map(([name, value]) => ({
           value,
           attributeId: attributes?.find((attr) => attr.name === name)?.id || "",
+          attributeValueId:
+            variants?.find((item) => item.value === value)?.id || "",
         })),
       })),
       { shouldDirty: true, shouldValidate: true },
@@ -151,35 +158,43 @@ export function ProductCreationForm() {
     setImageUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleVariantCheckboxChange = (variantId: string) => {
+  const handleVariantCheckboxChange = (variantId: string, indx: number) => {
     setSelectedVariantIds((prev) =>
       prev.includes(variantId)
         ? prev.filter((id) => id !== variantId)
         : [...prev, variantId],
     );
+    setSelectedIndex((prev) =>
+      prev.includes(indx) ? prev.filter((id) => id !== indx) : [...prev, indx],
+    );
   };
 
-  const handleSelectAllVariants = (data: string[]) => {
+  const handleSelectAllVariants = (data: string[], num: number[]) => {
     setSelectedVariantIds(data);
+    setSelectedIndex(num);
   };
 
   const onSubmit = async (data: FormData) => {
     // Filter the variants based on the selectedVariantIds state
-    const selectedVariants = selectedVariantIds.map((id) =>
-      data.variants?.find((variant) => variant.id === id),
-    );
-
-    console.log(
-      selectedVariants,
-      data.variants,
-      selectedVariantIds,
-      "selectedVariants",
+    const selectedVariants = selectedIndex?.map((id) =>
+      data?.variants?.find((_, idx) => idx === id),
     );
 
     const filteredData = {
       ...data,
+      variants: selectedVariants || data.variants,
     };
-    await mutate(filteredData);
+    await mutate({
+      ...filteredData,
+      variants:
+        filteredData.variants?.map((variant) => ({
+          stock: variant?.stock || 0,
+          sku: variant?.sku || "",
+          price: variant?.price || 0,
+          attributes: variant?.attributes || [],
+          id: variant?.id,
+        })) || [],
+    });
   };
 
   console.log(errors, "errors");
@@ -188,6 +203,7 @@ export function ProductCreationForm() {
     if (isSuccess) {
       form.reset();
       setSelectedVariantIds([]); // Reset selected IDs on success
+      setSelectedIndex([]);
     }
   }, [isSuccess, form]);
 

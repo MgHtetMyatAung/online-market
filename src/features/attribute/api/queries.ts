@@ -13,6 +13,14 @@ export const useGetAttributes = (params?: {
   });
 };
 
+export const useGetVariants = () => {
+  return useQuery({
+    queryKey: queryKeys.variants(),
+    queryFn: () => attributeApi.getAllVariants(),
+    // placeholderData: [], // Optional: for immediate UI
+  });
+};
+
 export const useGetAttributeById = (attributeId: string) => {
   return useQuery({
     queryKey: queryKeys.attribute(attributeId),

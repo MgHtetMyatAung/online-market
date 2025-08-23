@@ -1,8 +1,12 @@
- 
 import api from "@/services/api";
 import { typeOfAttribute } from "../type";
 import { z } from "zod";
 import { attributeSchema } from "@/lib/validations/attribute";
+
+interface variantResponse {
+  id: string;
+  value: string;
+}
 
 const API_BASE_PATH = "/attribute";
 
@@ -14,6 +18,10 @@ export const attributeApi = {
     const response = await api.get<typeOfAttribute[]>(API_BASE_PATH, {
       params,
     });
+    return response.data;
+  },
+  getAllVariants: async (): Promise<variantResponse[]> => {
+    const response = await api.get<variantResponse[]>("/variant");
     return response.data;
   },
   getAttributeById: async (id: string): Promise<typeOfAttribute> => {

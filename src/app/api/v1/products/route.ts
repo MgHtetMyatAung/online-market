@@ -107,6 +107,17 @@ export async function GET(request: Request) {
       inStock: product.variants.some((v) => v.stock > 0),
       totalStock:
         product.variants.reduce((sum, v) => sum + v.stock, 0) + product.stock,
+      variants: product.variants.map((variant) => ({
+        id: variant.id,
+        sku: variant.sku,
+        price: variant.price.toNumber(), // Convert Decimal to a number
+        stock: variant.stock,
+        attributes: variant.attributes.map((attr) => ({
+          attributeId: attr.attributeValue.attribute.id,
+          attributeValueId: attr.attributeValue.id,
+          value: attr.attributeValue.value,
+        })),
+      })),
     }));
 
     // return ApiResponseHandler.success(
@@ -190,24 +201,18 @@ export async function POST(request: NextRequest) {
         ...(variants &&
           variants.length > 0 && {
             variants: {
-              createMany: {
-                data: variants.map((v) => ({
-                  sku: v.sku,
-                  price: v.price,
-                  stock: v.stock,
-                  attributes: {
-                    createMany: {
-                      data: v.attributes.map((attr) => ({
-                        attributeId: attr.attributeId,
-                        value: attr.value,
-                      })),
+              create: variants.map((variant: any) => ({
+                price: variant.price,
+                stock: variant.stock,
+                sku: variant.sku,
+                attributes: {
+                  create: variant.attributes.map((attr: any) => ({
+                    attributeValue: {
+                      connect: { id: attr.attributeValueId },
                     },
-                  },
-                  // attributes: v.attributes,
-                  // isActive: v.isActive ?? true,
-                  // isDeleted: v.isDeleted ?? false
-                })),
-              },
+                  })),
+                },
+              })),
             },
           }),
       },
@@ -219,7 +224,11 @@ export async function POST(request: NextRequest) {
           include: {
             attributes: {
               include: {
-                attributeValue: true,
+                attributeValue: {
+                  include: {
+                    attribute: true,
+                  },
+                },
               },
             },
           },

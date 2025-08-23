@@ -13,6 +13,7 @@ interface typeOfProduct extends Product {
   };
   inStock?: boolean;
   totalStock?: number;
+  variants?: ProductVariantType[];
 }
 
 interface GetProductsParams {
@@ -28,6 +29,7 @@ interface ProductVariantType {
   stock: number;
   attributes: {
     attributeId: string;
+    attributeValueId?: string;
     value: string;
-  };
+  }[];
 }
