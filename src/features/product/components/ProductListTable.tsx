@@ -126,9 +126,13 @@ function ProductListTable() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>View details</DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`${ROUTE_PATH.PRODUCT.EDIT}${product.id}`}>
+                  <Link href={`${ROUTE_PATH.PRODUCT.LIST}/${product.id}`}>
+                    View Details
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`${ROUTE_PATH.PRODUCT.LIST}/${product.id}/edit`}>
                     Edit product
                   </Link>
                 </DropdownMenuItem>

@@ -7,9 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { BasicDetailsTab } from "./product-basic-tab";
-import { VariantsTab } from "./product-variant-tab";
-import { PromotionsTab } from "./product-promotion-tab";
 import { PublishingTab } from "./product-publish-tab";
 import { productSchema } from "@/lib/validations/product";
 import SubmitBtn from "@/components/actions/SubmitBtn";
@@ -19,28 +16,48 @@ import {
   useGetVariants,
 } from "@/features/attribute/api/queries";
 import { useProductIndexStore } from "../hook/use-product-index";
+import { useGetProductById } from "../../api/queries";
+import { BasicDetailsTabEdit } from "./product-basic-tab-edit";
+import { EditPromotionsTab } from "./edit-product-promotion-tab";
+import { useGetCategories } from "@/features/category/api/queries";
+import { useGetBrands } from "@/features/brand/api/queries";
+import { useGetPromotions } from "@/features/promotion/api/queries";
+import { EditVariantsTab } from "./edit-product-variant-tab";
 
 type FormData = z.infer<typeof productSchema>;
 
-export function ProductCreationForm() {
+export function ProductEditForm({ productId }: { productId: string }) {
+  const { data: productDetail, isLoading: productLoading } =
+    useGetProductById(productId);
+  console.log(productDetail, "product-detail");
   const { mutate, isPending, isSuccess } = useCreateProduct();
-  const { data: attributes } = useGetAttributes();
-  const { data: variants } = useGetVariants();
+  const { data: attributes, isLoading: attributeLoading } = useGetAttributes();
+  const { data: variants, isLoading: variantLoading } = useGetVariants();
+  const { data: categories, isLoading: categoryLoading } = useGetCategories();
+  const { data: brands, isLoading: brandLoading } = useGetBrands();
+  const { data: promotions, isLoading: promotionLoading } = useGetPromotions();
+  const isLoading =
+    productLoading ||
+    attributeLoading ||
+    variantLoading ||
+    categoryLoading ||
+    brandLoading ||
+    promotionLoading;
   const form = useForm<FormData>({
     resolver: zodResolver(productSchema) as Resolver<FormData>,
     defaultValues: {
-      name: "",
-      slug: "product-name",
-      basePrice: 0,
-      categoryId: "",
-      brandId: "",
-      description: "",
-      howToUse: "",
-      youtubeVideo: "",
-      specification: "",
-      promotionId: "",
-      isActive: true,
-      isFeatured: false,
+      name: productDetail?.name || "",
+      slug: productDetail?.slug || "",
+      basePrice: productDetail?.basePrice ? Number(productDetail.basePrice) : 0,
+      categoryId: productDetail?.categoryId || "",
+      brandId: productDetail?.brandId || "",
+      description: productDetail?.description || "",
+      howToUse: productDetail?.howToUse || "",
+      youtubeVideo: productDetail?.youtubeVideo || "",
+      specification: productDetail?.specification || "",
+      promotionId: productDetail?.promotionId || "",
+      isActive: productDetail?.isActive || true,
+      isFeatured: productDetail?.isFeatured || false,
       imageUrls: [],
       variants: [],
       selectedAttributes: [],
@@ -127,9 +144,6 @@ export function ProductCreationForm() {
       attributes: combo,
     }));
 
-    // Reset selected variant IDs when new variants are generated
-    // setSelectedVariantIds(newVariants.map((v) => v.id));
-
     setValue(
       "variants",
       newVariants.map((variant) => ({
@@ -171,7 +185,7 @@ export function ProductCreationForm() {
     //   setSelectedVariantIds([...selectedVariantIds, variantId]);
     // }
     if (selectedIndex?.includes(sku)) {
-      setSelectedIndex(selectedIndex.filter((item) => item !== sku));
+      setSelectedIndex(selectedIndex.filter((id) => id !== sku));
     } else {
       setSelectedIndex([...selectedIndex, sku]);
     }
@@ -209,6 +223,24 @@ export function ProductCreationForm() {
 
   console.log(errors, "errors");
 
+  const getAttributes = () => {
+    const attributes = productDetail?.variants?.map((variant) =>
+      variant?.attributes?.map((attr) => attr.attributeId),
+    );
+    setValue(
+      "selectedAttributes",
+      attributes?.flat().filter((id) => id !== null) || [],
+    );
+  };
+
+  const getVariants = () => {
+    if (productDetail?.variants && productDetail?.variants?.length > 0) {
+      setHasVariants(true);
+      const variants = productDetail.variants.map((variant) => variant.sku);
+      setSelectedIndex(variants);
+    }
+  };
+
   useEffect(() => {
     if (isSuccess) {
       form.reset();
@@ -219,6 +251,28 @@ export function ProductCreationForm() {
     };
   }, [isSuccess, form]);
 
+  useEffect(() => {
+    if (productDetail) {
+      setValue("name", productDetail.name);
+      setValue("slug", productDetail.slug);
+      setValue("basePrice", Number(productDetail.basePrice));
+      setValue("stock", Number(productDetail.stock));
+      setValue("categoryId", productDetail.categoryId);
+      setValue("brandId", productDetail?.brandId || "");
+      setValue("description", productDetail.description || "");
+      setValue("howToUse", productDetail.howToUse || "");
+      setValue("youtubeVideo", productDetail.youtubeVideo || "");
+      setValue("specification", productDetail.specification || "");
+      setValue("promotionId", productDetail.promotionId || "");
+      setValue("isActive", productDetail.isActive || true);
+      setValue("isFeatured", productDetail.isFeatured || false);
+      setValue("variants", productDetail.variants || []);
+      getAttributes();
+      getVariants();
+    }
+  }, [productDetail]);
+
+  if (isLoading) return <p>Loading ...</p>;
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <Tabs defaultValue="basic" className="w-full">
@@ -230,16 +284,18 @@ export function ProductCreationForm() {
         </TabsList>
 
         <TabsContent value="basic" className="space-y-6">
-          <BasicDetailsTab
+          <BasicDetailsTabEdit
             form={form}
             imageUrls={imageUrls}
             handleImageUpload={handleImageUpload}
             removeImage={removeImage}
+            brands={brands || []}
+            categories={categories || []}
           />
         </TabsContent>
 
         <TabsContent value="variants" className="space-y-6">
-          <VariantsTab
+          <EditVariantsTab
             form={form}
             hasVariants={hasVariants}
             setHasVariants={setHasVariants}
@@ -253,7 +309,7 @@ export function ProductCreationForm() {
         </TabsContent>
 
         <TabsContent value="promotions" className="space-y-6">
-          <PromotionsTab form={form} />
+          <EditPromotionsTab form={form} promotions={promotions || []} />
         </TabsContent>
 
         <TabsContent value="publishing" className="space-y-6">

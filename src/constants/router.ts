@@ -23,7 +23,6 @@ export const ROUTE_PATH = {
   PRODUCT: {
     LIST: "/dashboard/product",
     CREATE: "/dashboard/product/create",
-    EDIT: "/dashboard/product/edit/",
     VIEW: "/dashboard/product/view/",
   },
 

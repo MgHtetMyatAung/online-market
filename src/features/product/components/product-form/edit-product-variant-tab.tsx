@@ -33,7 +33,7 @@ interface VariantsTabProps {
   handleSelectAllVariants: (num: [] | string[]) => void;
 }
 
-export const VariantsTab: React.FC<VariantsTabProps> = ({
+export const EditVariantsTab: React.FC<VariantsTabProps> = ({
   form,
   hasVariants,
   setHasVariants,

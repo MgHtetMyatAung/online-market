@@ -13,13 +13,50 @@ export async function GET(
   try {
     const product = await prisma.product.findUnique({
       where: { id },
+      include: {
+        category: true,
+        brand: true,
+        promotion: true,
+        variants: {
+          select: {
+            id: true,
+            sku: true,
+            price: true,
+            stock: true,
+            attributes: {
+              include: {
+                attributeValue: {
+                  include: {
+                    attribute: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!product) {
       return NextResponse.json("Product not found", { status: 404 });
     }
 
-    return NextResponse.json(product, { status: 200 });
+    const productWithVariants = {
+      ...product,
+      variants: product.variants.map((variant) => ({
+        id: variant.id,
+        sku: variant.sku,
+        price: variant.price.toNumber(), // Convert Decimal to a number
+        stock: variant.stock,
+        attributes: variant.attributes.map((attr) => ({
+          attributeId: attr.attributeValue.attribute.id,
+          attributeValueId: attr.attributeValue.id,
+          value: attr.attributeValue.value,
+        })),
+      })),
+    };
+
+    return NextResponse.json(productWithVariants, { status: 200 });
   } catch (error) {
     return NextResponse.json("Failed to fetch product", { status: 500 });
   }
