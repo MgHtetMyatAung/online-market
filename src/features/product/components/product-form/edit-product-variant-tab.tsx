@@ -175,6 +175,7 @@ export const EditVariantsTab: React.FC<VariantsTabProps> = ({
                           <Input
                             {...register(`variants.${index}.sku`)}
                             className="text-sm bg-white"
+                            readOnly
                           />
                         </div>
                         <div className="col-span-3">

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApiResponseHandler } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
-import { productUpdateSchema } from "@/lib/validations/product";
+import { productSchema, productUpdateSchema } from "@/lib/validations/product";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -62,24 +62,26 @@ export async function GET(
   }
 }
 
-export async function PUT(
+export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
+  const { id: productId } = await params;
   try {
     const body = await request.json();
 
-    // Validate request body with Zod
-    const validationResult = productUpdateSchema.safeParse(body);
+    // Validate the incoming data
+    const validationResult = productSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return ApiResponseHandler.error(
-        "Invalid product data",
-        400,
-        validationResult.error.errors
-          .map((e) => `${e.path.join(".")}: ${e.message}`)
-          .join(", "),
+      console.error("Product validation error:", validationResult.error.errors);
+      return NextResponse.json(
+        {
+          message: validationResult.error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", "),
+        },
+        { status: 400 },
       );
     }
 
@@ -88,74 +90,116 @@ export async function PUT(
       slug,
       description,
       basePrice,
+      stock,
       categoryId,
       brandId,
       imageUrls,
       isFeatured,
       isActive,
-      isDeleted,
       promotionId,
+      variants,
       howToUse,
       youtubeVideo,
       specification,
-      variants,
+      isDeleted,
+      // You should not be receiving `selectedAttributes` from the API.
+      // That's a frontend concern. We'll ignore it here.
     } = validationResult.data;
 
-    const product = await prisma.product.update({
-      where: { id },
-      data: {
-        name,
-        slug,
-        description,
-        basePrice,
-        imageUrls,
-        howToUse,
-        youtubeVideo,
-        specification,
-        isFeatured,
-        isActive,
-        isDeleted,
-        ...(categoryId && {
+    // Start a Prisma transaction to ensure atomicity
+    const transaction = await prisma.$transaction(async (tx) => {
+      // 1. Delete existing variants and their attributes
+      // This is the most important part for handling the edit.
+      // We first find all variant IDs for the product
+      const existingVariants = await tx.productVariant.findMany({
+        where: { productId },
+        select: { id: true },
+      });
+
+      // Now delete the associated variant attributes
+      await tx.variantAttributeValue.deleteMany({
+        where: {
+          variantId: {
+            in: existingVariants.map((v) => v.id),
+          },
+        },
+      });
+
+      // Then delete the variants themselves
+      await tx.productVariant.deleteMany({
+        where: { productId },
+      });
+
+      // 2. Update the main product data
+      const updatedProduct = await tx.product.update({
+        where: { id: productId },
+        data: {
+          name,
+          slug,
+          description,
+          basePrice,
+          stock,
+          imageUrls,
+          howToUse,
+          youtubeVideo,
+          specification,
+          isFeatured: isFeatured ?? false,
+          isActive: isActive ?? true,
+          isDeleted: isDeleted ?? false,
           category: {
             connect: { id: categoryId },
           },
-        }),
-        ...(brandId && {
-          brand: {
-            connect: { id: brandId },
-          },
-        }),
-        ...(promotionId && {
-          promotion: {
-            connect: { id: promotionId },
-          },
-        }),
-        ...(variants &&
-          variants.length > 0 && {
-            variants: {
-              deleteMany: {}, // Remove existing variants
-              createMany: {
-                data: variants.map((v) => ({
-                  sku: v.sku,
-                  price: v.price,
-                  stock: v.stock,
-                  attributes: v.attributes,
-                  // isActive: v.isActive ?? true,
-                  // isDeleted: v.isDeleted ?? false
-                })),
-              },
+          ...(brandId && {
+            brand: {
+              connect: { id: brandId },
             },
           }),
-      },
-      include: {
-        category: true,
-        brand: true,
-        promotion: true,
-        variants: true,
-      },
+          ...(promotionId && {
+            promotion: {
+              connect: { id: promotionId },
+            },
+          }),
+          // Create the new variants
+          // The `create` operation will handle the nested `create` for attributes.
+          variants: {
+            create: variants?.map((variant) => ({
+              price: variant.price,
+              stock: variant.stock,
+              sku: variant.sku,
+              attributes: {
+                create: variant.attributes.map((attr) => ({
+                  attributeValue: {
+                    connect: { id: attr.attributeValueId },
+                  },
+                })),
+              },
+            })),
+          },
+        },
+        include: {
+          category: true,
+          brand: true,
+          promotion: true,
+          variants: {
+            include: {
+              attributes: {
+                include: {
+                  attributeValue: {
+                    include: {
+                      attribute: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return updatedProduct;
     });
 
-    return NextResponse.json(product, { status: 200 });
+    return NextResponse.json(transaction, { status: 200 });
   } catch (error: any) {
     console.error("Failed to update product:", error);
     let errorMessage = "Failed to update product";
@@ -167,13 +211,12 @@ export async function PUT(
     } else if (error.code === "P2025") {
       errorMessage = "Associated category, brand, or promotion not found.";
       statusCode = 404;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+      statusCode = 500;
     }
 
-    return ApiResponseHandler.error(
-      errorMessage,
-      statusCode,
-      error instanceof Error ? error.message : "Unknown error",
-    );
+    return NextResponse.json({ message: errorMessage }, { status: statusCode });
   }
 }
 

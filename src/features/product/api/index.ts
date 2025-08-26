@@ -34,7 +34,7 @@ export const productApi = {
     id: string,
     productData: z.infer<typeof formSchema>,
   ): Promise<Product> => {
-    const response = await api.put<Product>(
+    const response = await api.patch<Product>(
       `${API_BASE_PATH}/${id}`,
       productData,
     );

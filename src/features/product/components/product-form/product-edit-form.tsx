@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PublishingTab } from "./product-publish-tab";
 import { productSchema } from "@/lib/validations/product";
 import SubmitBtn from "@/components/actions/SubmitBtn";
-import { useCreateProduct } from "../../api/mutations";
+import { useUpdateProduct } from "../../api/mutations";
 import {
   useGetAttributes,
   useGetVariants,
@@ -23,14 +23,17 @@ import { useGetCategories } from "@/features/category/api/queries";
 import { useGetBrands } from "@/features/brand/api/queries";
 import { useGetPromotions } from "@/features/promotion/api/queries";
 import { EditVariantsTab } from "./edit-product-variant-tab";
+import { useRouter } from "next/navigation";
 
 type FormData = z.infer<typeof productSchema>;
 
 export function ProductEditForm({ productId }: { productId: string }) {
+  const navigate = useRouter();
   const { data: productDetail, isLoading: productLoading } =
     useGetProductById(productId);
   console.log(productDetail, "product-detail");
-  const { mutate, isPending, isSuccess } = useCreateProduct();
+  const isFormInitialized = useRef(false);
+  const { mutate, isPending, isSuccess } = useUpdateProduct();
   const { data: attributes, isLoading: attributeLoading } = useGetAttributes();
   const { data: variants, isLoading: variantLoading } = useGetVariants();
   const { data: categories, isLoading: categoryLoading } = useGetCategories();
@@ -68,7 +71,7 @@ export function ProductEditForm({ productId }: { productId: string }) {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors },
+    formState: { isDirty },
   } = form;
 
   const nameValue = watch("name");
@@ -131,6 +134,7 @@ export function ProductEditForm({ productId }: { productId: string }) {
         current[attribute.name] = value.value;
         generateCombinations(index + 1, current);
       }
+      console.log(attribute, "attribute");
     };
     generateCombinations(0, {});
 
@@ -161,6 +165,8 @@ export function ProductEditForm({ productId }: { productId: string }) {
       { shouldDirty: true, shouldValidate: true },
     );
   };
+
+  console.log(selectedIndex, "selectedIndex");
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -199,6 +205,9 @@ export function ProductEditForm({ productId }: { productId: string }) {
   };
 
   const onSubmit = async (data: FormData) => {
+    if (!isDirty) {
+      return;
+    }
     // Filter the variants based on the selectedVariantIds state
     const selectedVariants = selectedIndex?.map((id) =>
       data?.variants?.find((item) => item.sku === id),
@@ -209,50 +218,56 @@ export function ProductEditForm({ productId }: { productId: string }) {
       variants: selectedVariants || data.variants,
     };
     await mutate({
-      ...filteredData,
-      variants:
-        filteredData.variants?.map((variant) => ({
-          stock: variant?.stock || 0,
-          sku: variant?.sku || "",
-          price: variant?.price || 0,
-          attributes: variant?.attributes || [],
-          id: variant?.id,
-        })) || [],
+      id: productId,
+      data: {
+        ...filteredData,
+        variants:
+          filteredData.variants?.map((variant) => ({
+            stock: variant?.stock || 0,
+            sku: variant?.sku || "",
+            price: variant?.price || 0,
+            attributes: variant?.attributes || [],
+            id: variant?.id,
+          })) || [],
+      },
     });
   };
 
-  console.log(errors, "errors");
+  // const getAttributes = () => {
+  //   const attributes = productDetail?.variants?.map((variant) =>
+  //     variant?.attributes?.map((attr) => attr.attributeId)
+  //   );
+  //   setValue(
+  //     "selectedAttributes",
+  //     attributes?.flat().filter((id) => id !== null) || []
+  //   );
+  // };
 
-  const getAttributes = () => {
-    const attributes = productDetail?.variants?.map((variant) =>
-      variant?.attributes?.map((attr) => attr.attributeId),
-    );
-    setValue(
-      "selectedAttributes",
-      attributes?.flat().filter((id) => id !== null) || [],
-    );
-  };
-
-  const getVariants = () => {
-    if (productDetail?.variants && productDetail?.variants?.length > 0) {
-      setHasVariants(true);
-      const variants = productDetail.variants.map((variant) => variant.sku);
-      setSelectedIndex(variants);
-    }
-  };
+  // const getVariants = () => {
+  //   if (productDetail?.variants && productDetail?.variants?.length > 0) {
+  //     setHasVariants(true);
+  //     const variants = productDetail.variants.map((variant) => variant.sku);
+  //     setSelectedIndex(variants);
+  //   }
+  // };
 
   useEffect(() => {
     if (isSuccess) {
       form.reset();
       setSelectedIndex([]);
+      setHasVariants(false);
+      setImageUrls([]);
+      setSelectedIndex([]);
+      isFormInitialized.current = false;
+      navigate.back();
     }
     return () => {
-      setSelectedIndex([]);
+      // setSelectedIndex([]);
     };
   }, [isSuccess, form]);
 
   useEffect(() => {
-    if (productDetail) {
+    if (productDetail && !isFormInitialized.current) {
       setValue("name", productDetail.name);
       setValue("slug", productDetail.slug);
       setValue("basePrice", Number(productDetail.basePrice));
@@ -267,10 +282,27 @@ export function ProductEditForm({ productId }: { productId: string }) {
       setValue("isActive", productDetail.isActive || true);
       setValue("isFeatured", productDetail.isFeatured || false);
       setValue("variants", productDetail.variants || []);
-      getAttributes();
-      getVariants();
+
+      if (productDetail.variants) {
+        const attributesFromVariants = productDetail?.variants
+          .flatMap((variant) => variant.attributes)
+          .map((attr) => attr.attributeId)
+          .filter(Boolean); // Filters out any undefined or null values
+
+        // Use a Set to get unique attribute IDs before setting the value
+        const uniqueAttributes = [...new Set(attributesFromVariants)];
+        setValue("selectedAttributes", uniqueAttributes);
+      }
+
+      if (productDetail.variants && productDetail.variants.length > 0) {
+        setHasVariants(true);
+        const variants = productDetail.variants.map((variant) => variant.sku);
+        setSelectedIndex(variants);
+      }
+
+      isFormInitialized.current = true;
     }
-  }, [productDetail]);
+  }, [productDetail, setValue, setHasVariants, setSelectedIndex]);
 
   if (isLoading) return <p>Loading ...</p>;
   return (
@@ -321,7 +353,7 @@ export function ProductEditForm({ productId }: { productId: string }) {
         <Button type="button" variant="outline">
           Save as Draft
         </Button>
-        <SubmitBtn title="Create" isPending={isPending} />
+        <SubmitBtn title="Update" isPending={isPending} />
       </div>
     </form>
   );
