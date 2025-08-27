@@ -44,7 +44,7 @@ export default function DeleteConfirmBtn({
   return (
     <AlertDialog open={open}>
       <AlertDialogTrigger
-        className=" w-fit text-sm text-start text-red-500 pb-2 hover:text-red-700"
+        className=" w-fit text-sm text-start text-red-500 pb-2 hover:text-red-700 px-2"
         onClick={() => setOpen(true)}
       >
         {children}

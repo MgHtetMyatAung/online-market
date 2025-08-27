@@ -1,4 +1,3 @@
- 
 import React from "react";
 import {
   Card,
@@ -18,18 +17,21 @@ import {
 import { Controller, UseFormReturn } from "react-hook-form";
 import { z } from "zod"; // Assuming schema is in lib/schemas
 import { productSchema } from "@/lib/validations/product";
-import { useGetPromotions } from "@/features/promotion/api/queries";
 import { Badge } from "@/components/ui/badge";
 import { promotionTypes } from "@/constants/data/promotion";
+import { Promotion } from "@prisma/client";
 
 type FormData = z.infer<typeof productSchema>;
 
 interface PromotionsTabProps {
   form: UseFormReturn<FormData>;
+  promotions: Promotion[];
 }
 
-export const PromotionsTab: React.FC<PromotionsTabProps> = ({ form }) => {
-  const { data: promotions } = useGetPromotions();
+export const PromotionsTab: React.FC<PromotionsTabProps> = ({
+  form,
+  promotions,
+}) => {
   const { control } = form;
 
   return (

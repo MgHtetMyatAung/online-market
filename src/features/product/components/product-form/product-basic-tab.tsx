@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -23,8 +23,7 @@ import { Controller, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { productSchema } from "@/lib/validations/product";
 import Image from "next/image";
-import { useGetCategories } from "@/features/category/api/queries";
-import { useGetBrands } from "@/features/brand/api/queries";
+import { Brand, Category } from "@prisma/client";
 // Assuming schema is in lib/schemas
 
 type FormData = z.infer<typeof productSchema>;
@@ -34,6 +33,8 @@ interface BasicDetailsTabProps {
   imageUrls: string[];
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeImage: (index: number) => void;
+  brands: Brand[];
+  categories: Category[];
 }
 
 export const BasicDetailsTab: React.FC<BasicDetailsTabProps> = ({
@@ -41,14 +42,27 @@ export const BasicDetailsTab: React.FC<BasicDetailsTabProps> = ({
   imageUrls,
   handleImageUpload,
   removeImage,
+  brands,
+  categories,
 }) => {
-  const { data: categories } = useGetCategories();
-  const { data: brands } = useGetBrands();
   const {
     register,
     control,
+    watch,
     formState: { errors },
   } = form;
+
+  const categoryId = watch("categoryId");
+  const brandId = watch("brandId");
+
+  useEffect(() => {
+    if (categoryId) {
+      form.setValue("categoryId", categoryId);
+    }
+    if (brandId) {
+      form.setValue("brandId", brandId);
+    }
+  }, [form, categoryId, brandId]);
 
   return (
     <Card className="shadow-none">

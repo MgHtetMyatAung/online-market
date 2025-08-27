@@ -19,13 +19,38 @@ import {
   useGetVariants,
 } from "@/features/attribute/api/queries";
 import { useProductIndexStore } from "../hook/use-product-index";
+import { useSearchParams } from "next/navigation";
+import { useGetProductById } from "../../api/queries";
+import { useGetCategories } from "@/features/category/api/queries";
+import { useGetBrands } from "@/features/brand/api/queries";
+import { useGetPromotions } from "@/features/promotion/api/queries";
 
 type FormData = z.infer<typeof productSchema>;
 
 export function ProductCreationForm() {
+  const searchParams = useSearchParams();
+  const duplicateId = searchParams.get("duplicateId");
+
+  // Fetch data for the product to be duplicated
+  const { data: sourceProduct, isLoading: sourceProductLoading } =
+    useGetProductById(duplicateId, {
+      staleTime: Infinity, // Use cache to avoid re-fetching
+    });
+
   const { mutate, isPending, isSuccess } = useCreateProduct();
-  const { data: attributes } = useGetAttributes();
-  const { data: variants } = useGetVariants();
+  const { data: attributes, isLoading: attributeLoading } = useGetAttributes();
+  const { data: variants, isLoading: variantLoading } = useGetVariants();
+  const { data: categories, isLoading: categoryLoading } = useGetCategories();
+  const { data: brands, isLoading: brandLoading } = useGetBrands();
+  const { data: promotions, isLoading: promotionLoading } = useGetPromotions();
+
+  const isLoading =
+    attributeLoading ||
+    variantLoading ||
+    categoryLoading ||
+    brandLoading ||
+    promotionLoading;
+
   const form = useForm<FormData>({
     resolver: zodResolver(productSchema) as Resolver<FormData>,
     defaultValues: {
@@ -51,7 +76,7 @@ export function ProductCreationForm() {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors },
+    formState: {},
   } = form;
 
   const nameValue = watch("name");
@@ -163,21 +188,11 @@ export function ProductCreationForm() {
   };
 
   const handleVariantCheckboxChange = (sku: string) => {
-    // if (selectedVariantIds?.includes(variantId)) {
-    //   setSelectedVariantIds(
-    //     selectedVariantIds.filter((id) => id !== variantId)
-    //   );
-    // } else {
-    //   setSelectedVariantIds([...selectedVariantIds, variantId]);
-    // }
     if (selectedIndex?.includes(sku)) {
       setSelectedIndex(selectedIndex.filter((item) => item !== sku));
     } else {
       setSelectedIndex([...selectedIndex, sku]);
     }
-    // setSelectedIndex((prev) =>
-    //   prev.includes(indx) ? prev.filter((id) => id !== indx) : [...prev, indx],
-    // );
   };
 
   const handleSelectAllVariants = (skus: string[]) => {
@@ -207,8 +222,6 @@ export function ProductCreationForm() {
     });
   };
 
-  console.log(errors, "errors");
-
   useEffect(() => {
     if (isSuccess) {
       form.reset();
@@ -218,6 +231,28 @@ export function ProductCreationForm() {
       setSelectedIndex([]);
     };
   }, [isSuccess, form]);
+
+  useEffect(() => {
+    if (sourceProduct) {
+      setValue("name", `${sourceProduct.name} Copy`);
+      setValue("slug", `${sourceProduct.slug}-copy`);
+      setValue("basePrice", Number(sourceProduct.basePrice));
+      setValue("stock", Number(sourceProduct.stock));
+      setValue("categoryId", sourceProduct.categoryId);
+      setValue("brandId", sourceProduct?.brandId || "");
+      setValue("description", sourceProduct.description || "");
+      setValue("howToUse", sourceProduct.howToUse || "");
+      setValue("youtubeVideo", sourceProduct.youtubeVideo || "");
+      setValue("specification", sourceProduct.specification || "");
+      // setValue("promotionId", sourceProduct.promotionId || "");
+      setValue("isActive", sourceProduct.isActive || true);
+      setValue("isFeatured", sourceProduct.isFeatured || false);
+    }
+  }, [sourceProduct]);
+
+  if (sourceProductLoading || isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -235,6 +270,8 @@ export function ProductCreationForm() {
             imageUrls={imageUrls}
             handleImageUpload={handleImageUpload}
             removeImage={removeImage}
+            brands={brands || []}
+            categories={categories || []}
           />
         </TabsContent>
 
@@ -253,7 +290,7 @@ export function ProductCreationForm() {
         </TabsContent>
 
         <TabsContent value="promotions" className="space-y-6">
-          <PromotionsTab form={form} />
+          <PromotionsTab form={form} promotions={promotions || []} />
         </TabsContent>
 
         <TabsContent value="publishing" className="space-y-6">

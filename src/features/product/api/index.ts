@@ -20,7 +20,10 @@ export const productApi = {
     const response = await api.get<typeOfProduct[]>(API_BASE_PATH, { params });
     return response.data;
   },
-  getProductById: async (id: string): Promise<typeOfProduct> => {
+  getProductById: async (id: string | null): Promise<typeOfProduct> => {
+    if (!id) {
+      throw new Error("Product ID is missing.");
+    }
     const response = await api.get<typeOfProduct>(`${API_BASE_PATH}/${id}`);
     return response.data;
   },

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const queryKeys = {
   products: (params?: Record<string, any>) => ["products", params] as const,
-  product: (id: string) => ["product", id] as const,
+  product: (id: string | undefined | null) => ["product", id] as const,
   brands: (params?: Record<string, any>) => ["brands", params] as const,
   brand: (id: string) => ["brand", id] as const,
   categories: (params?: Record<string, any>) => ["categories", params] as const,

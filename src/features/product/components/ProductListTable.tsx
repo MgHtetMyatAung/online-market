@@ -21,11 +21,12 @@ import { Product } from "@prisma/client";
 import { typeOfProduct } from "../type";
 import { checkStock } from "./checkStock";
 import LinkButton from "@/components/actions/LinkButton";
+import DeleteConfirmBtn from "@/components/actions/DeleteConfirmBtn";
+import { useDeleteProduct } from "../api/mutations";
 
 function ProductListTable() {
   const { data: products, isLoading } = useGetProducts();
-
-  console.log(products, "products");
+  const { mutate, isPending, isSuccess } = useDeleteProduct();
 
   const columns = useMemo<ColumnDef<typeOfProduct>[]>(
     () => [
@@ -133,13 +134,27 @@ function ProductListTable() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={`${ROUTE_PATH.PRODUCT.LIST}/${product.id}/edit`}>
-                    Edit product
+                    Edit Product
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">
-                  Delete product
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`${ROUTE_PATH.PRODUCT.CREATE}?duplicateId=${product.id}`}
+                  >
+                    Duplicate Product
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <DeleteConfirmBtn
+                    title="Product"
+                    targetId={product.id}
+                    onDelete={mutate}
+                    isPending={isPending}
+                    isSuccess={isSuccess}
+                  >
+                    Delete Product
+                  </DeleteConfirmBtn>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
