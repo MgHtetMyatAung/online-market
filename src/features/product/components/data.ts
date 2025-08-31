@@ -1,0 +1,17 @@
+export const hexCodes = {
+  black: "#000000",
+  blue: "#0000FF",
+  white: "#FFFFFF",
+  silver: "#C0C0C0",
+  gold: "#FFD700",
+  red: "#FF0000",
+  green: "#008000",
+  yellow: "#FFFF00",
+  purple: "#800080",
+  orange: "#FFA500",
+  pink: "#FFC0CB",
+  gray: "#808080",
+  brown: "#A52A2A",
+  cyan: "#00FFFF",
+  magenta: "#FF00FF",
+};

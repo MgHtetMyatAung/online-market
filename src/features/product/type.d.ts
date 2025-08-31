@@ -1,4 +1,4 @@
-import { Product } from "@prisma/client";
+import { Product, Promotion } from "@prisma/client";
 
 interface typeOfProduct extends Product {
   category: {
@@ -11,6 +11,7 @@ interface typeOfProduct extends Product {
     name: string;
     slug: string;
   };
+  promotion: Promotion;
   inStock?: boolean;
   totalStock?: number;
   variants?: ProductVariantType[];
