@@ -15,11 +15,16 @@ export async function GET(request: Request) {
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     const search = searchParams.get("search");
+    const isFeatured = searchParams.get("isFeatured");
 
     const where: any = {
       // isDeleted: false, // Exclude deleted products
       // isActive: true, // Only include active products
     };
+
+    if (isFeatured === "true") {
+      where.isFeatured = Boolean(isFeatured);
+    }
 
     if (categoryId) {
       where.categoryId = categoryId;
